@@ -160,8 +160,14 @@ caree-seek-skill/
 ### 安装
 
 - **Claude Code**：把目录放到 `~/.claude/skills/caree-seek/` 或项目内 `.claude/skills/caree-seek/`
+- **Windows 本地开发**：可以直接用目录 junction，不必复制：
+  ```powershell
+  New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\caree-seek" -Target "D:\Projects\VibeCoding Project\caree_seek"
+  ```
+  重启 Claude Code 后，技能列表里会出现 `caree-seek`；也可以直接说「用 caree-seek 分析…」触发。
 - **Codex / 其他 harness**：放到其 skill 约定目录；若不支持 SKILL.md，按 `SKILL.md` 作为操作手册执行
 - 浏览器工具与 Web 搜索按 [references/browser-contract.md](references/browser-contract.md) 适配
+- 首次运行先做环境自检：`python scripts/preflight.py`
 
 ### 隐私与合规
 
