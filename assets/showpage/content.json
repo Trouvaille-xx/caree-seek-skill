@@ -17,7 +17,7 @@
       "icon": "chart",
       "title": { "zh": "月薪与阶梯", "en": "Pay & ladders" },
       "desc": {
-        "zh": "P25/中位/P75、折算月薪、四种阶梯，图先行。",
+        "zh": "P25/中位/P75、折算月薪、四种阶梯。",
         "en": "P25/median/P75, four ladder views — charts first."
       }
     },
@@ -48,5 +48,5 @@
   "quickstart": "python scripts/preflight.py",
   "url": "github.com/Trouvaille-xx/caree-seek-skill",
   "handle": "@Trouvaille-xx",
-  "meta": ["Python", "ECharts"]
+  "meta": ["求职市场", "薪资分析", "简历匹配"]
 }
