@@ -1,0 +1,20 @@
+{
+  "city": [],
+  "exp_years": null,
+  "role_keywords": [],
+  "industry": "",
+  "salary_expect": {
+    "min_k": null,
+    "max_k": null,
+    "months": 12
+  },
+  "company_size_pref": [],
+  "ladder_modes": ["same_company", "salary_curve"],
+  "bg_scope": "top_n",
+  "top_n": 5,
+  "target_count": 60,
+  "output_format": "html",
+  "export_targets": [],
+  "pacing_profile": "standard",
+  "questionnaire_answered": []
+}

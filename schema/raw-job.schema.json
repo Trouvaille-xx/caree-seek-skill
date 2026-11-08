@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CareeSeek raw job record",
+  "type": "object",
+  "properties": {
+    "job_id": { "type": "string" },
+    "source_url": { "type": "string" },
+    "collected_at": { "type": "string" },
+    "search_keyword": { "type": "string" },
+    "page": { "type": ["integer", "null"] },
+    "card": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "company": { "type": "string" },
+        "salary_text": { "type": "string" },
+        "city": { "type": "string" },
+        "exp_text": { "type": "string" },
+        "edu": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["title", "company"]
+    },
+    "detail": {
+      "type": "object",
+      "properties": {
+        "raw_text": { "type": "string" },
+        "posted_at": { "type": "string" },
+        "benefits": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "extraction_mode": { "enum": ["card_only", "detail"] },
+    "selector_version": { "type": "string" },
+    "dup_hash": { "type": "string" },
+    "flags": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["job_id", "source_url", "card"]
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CareeSeek analysis result",
+  "type": "object",
+  "properties": {
+    "run_id": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "n": { "type": "integer" },
+    "salary": {
+      "type": "object",
+      "properties": {
+        "overall": {
+          "type": "object",
+          "properties": {
+            "n": { "type": "integer" },
+            "p25": { "type": ["number", "null"] },
+            "p50": { "type": ["number", "null"] },
+            "p75": { "type": ["number", "null"] }
+          }
+        },
+        "histogram": { "type": "array" },
+        "by_city": { "type": "array" },
+        "by_city_tier": { "type": "array" }
+      }
+    },
+    "keyword_freq": { "type": "array" },
+    "ladders": {
+      "type": "object",
+      "properties": {
+        "same_company": { "type": "array" },
+        "cross_company": { "type": "object" },
+        "capability_map": { "type": "array" },
+        "salary_curve": { "type": "array" }
+      }
+    },
+    "scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "string" },
+          "score": { "type": "number" }
+        }
+      }
+    },
+    "ranked_jobs": { "type": "array" },
+    "company_index": { "type": "array" },
+    "anomalies": { "type": "array" },
+    "data_quality": { "type": "object" },
+    "low_confidence_flags": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["run_id", "n", "salary", "ladders", "scores"]
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CareeSeek intake config",
+  "type": "object",
+  "properties": {
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "city": { "type": "array", "items": { "type": "string" } },
+    "exp_years": { "type": ["number", "null"] },
+    "role_keywords": { "type": "array", "items": { "type": "string" } },
+    "industry": { "type": "string" },
+    "salary_expect": {
+      "type": "object",
+      "properties": {
+        "min_k": { "type": ["number", "null"] },
+        "max_k": { "type": ["number", "null"] },
+        "months": { "type": "integer", "minimum": 12, "maximum": 24 }
+      }
+    },
+    "company_size_pref": { "type": "array", "items": { "type": "string" } },
+    "ladder_modes": {
+      "type": "array",
+      "items": { "enum": ["same_company", "cross_company", "capability_map", "salary_curve"] }
+    },
+    "bg_scope": { "enum": ["top_n", "shallow_all", "manual"] },
+    "top_n": { "type": "integer", "minimum": 1, "maximum": 20 },
+    "target_count": { "type": "integer", "minimum": 1, "maximum": 100 },
+    "output_format": { "enum": ["html"] },
+    "export_targets": {
+      "type": "array",
+      "items": { "enum": ["csv", "xlsx", "md", "feishu"] }
+    },
+    "pacing_profile": { "enum": ["conservative", "standard", "aggressive"] },
+    "questionnaire_answered": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["ladder_modes", "bg_scope", "target_count", "output_format"]
+}

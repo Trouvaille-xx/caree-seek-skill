@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CareeSeek normalized job",
+  "type": "object",
+  "properties": {
+    "job_id": { "type": "string" },
+    "title": { "type": "string" },
+    "title_family": { "type": "string" },
+    "level_guess": { "enum": ["初级", "中级", "高级", "资深", "专家", "管理", "未知"] },
+    "company": { "type": "string" },
+    "company_key": { "type": "string" },
+    "salary": {
+      "type": "object",
+      "properties": {
+        "min_k": { "type": ["number", "null"] },
+        "max_k": { "type": ["number", "null"] },
+        "months": { "type": "integer" },
+        "mid_annual_k": { "type": ["number", "null"] },
+        "text": { "type": "string" }
+      }
+    },
+    "city": { "type": "string" },
+    "district": { "type": "string" },
+    "exp": {
+      "type": "object",
+      "properties": {
+        "min": { "type": ["integer", "null"] },
+        "max": { "type": ["integer", "null"] }
+      }
+    },
+    "education": { "type": "string" },
+    "skills": { "type": "array", "items": { "type": "string" } },
+    "benefits": { "type": "array", "items": { "type": "string" } },
+    "jd_summary": { "type": "string" },
+    "posted_at": { "type": "string" },
+    "url": { "type": "string" },
+    "dup_hash": { "type": "string" },
+    "detail_available": { "type": "boolean" },
+    "quality_flags": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["job_id", "title", "company", "company_key", "salary", "city"]
+}

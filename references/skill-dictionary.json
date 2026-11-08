@@ -1,0 +1,120 @@
+{
+  "version": "1.0.0",
+  "description": "技能词典：normalize.py 用它对 JD 文本做打标。aliases 不区分大小写；英文别名按单词边界匹配。",
+  "categories": {
+    "编程语言": [
+      {"name": "Python", "aliases": ["python"]},
+      {"name": "Java", "aliases": ["java"]},
+      {"name": "Go", "aliases": ["golang", "go"]},
+      {"name": "JavaScript", "aliases": ["javascript", "js"]},
+      {"name": "TypeScript", "aliases": ["typescript", "ts"]},
+      {"name": "C++", "aliases": ["c++", "cpp"]},
+      {"name": "Rust", "aliases": ["rust"]},
+      {"name": "C#", "aliases": ["c#", "csharp"]}
+    ],
+    "后端": [
+      {"name": "Spring Boot", "aliases": ["spring boot", "springboot", "spring"]},
+      {"name": "Django", "aliases": ["django"]},
+      {"name": "Flask", "aliases": ["flask"]},
+      {"name": "FastAPI", "aliases": ["fastapi"]},
+      {"name": "Node.js", "aliases": ["node.js", "nodejs", "node"]},
+      {"name": "MySQL", "aliases": ["mysql"]},
+      {"name": "PostgreSQL", "aliases": ["postgresql", "postgres"]},
+      {"name": "Redis", "aliases": ["redis"]},
+      {"name": "Kafka", "aliases": ["kafka"]},
+      {"name": "RabbitMQ", "aliases": ["rabbitmq"]},
+      {"name": "微服务", "aliases": ["微服务", "microservice"]},
+      {"name": "分布式系统", "aliases": ["分布式"]},
+      {"name": "高并发", "aliases": ["高并发"]},
+      {"name": "Docker", "aliases": ["docker"]},
+      {"name": "Kubernetes", "aliases": ["kubernetes", "k8s"]},
+      {"name": "Linux", "aliases": ["linux"]},
+      {"name": "gRPC", "aliases": ["grpc"]}
+    ],
+    "前端": [
+      {"name": "React", "aliases": ["react"]},
+      {"name": "Vue", "aliases": ["vue"]},
+      {"name": "Angular", "aliases": ["angular"]},
+      {"name": "Next.js", "aliases": ["next.js", "nextjs"]},
+      {"name": "Webpack", "aliases": ["webpack"]},
+      {"name": "Vite", "aliases": ["vite"]},
+      {"name": "HTML/CSS", "aliases": ["html", "css"]},
+      {"name": "小程序", "aliases": ["小程序", "miniprogram"]}
+    ],
+    "数据与AI": [
+      {"name": "SQL", "aliases": ["sql"]},
+      {"name": "数据分析", "aliases": ["数据分析"]},
+      {"name": "数据仓库", "aliases": ["数据仓库", "数仓"]},
+      {"name": "Spark", "aliases": ["spark"]},
+      {"name": "Hadoop", "aliases": ["hadoop"]},
+      {"name": "Flink", "aliases": ["flink"]},
+      {"name": "Hive", "aliases": ["hive"]},
+      {"name": "Tableau", "aliases": ["tableau"]},
+      {"name": "Power BI", "aliases": ["power bi", "powerbi"]},
+      {"name": "机器学习", "aliases": ["机器学习", "machine learning", "ml"]},
+      {"name": "深度学习", "aliases": ["深度学习", "deep learning"]},
+      {"name": "PyTorch", "aliases": ["pytorch"]},
+      {"name": "TensorFlow", "aliases": ["tensorflow"]},
+      {"name": "大模型", "aliases": ["大模型", "大语言模型", "llm"]},
+      {"name": "AIGC", "aliases": ["aigc"]},
+      {"name": "NLP", "aliases": ["nlp", "自然语言处理"]},
+      {"name": "推荐系统", "aliases": ["推荐系统", "推荐算法"]},
+      {"name": "计算机视觉", "aliases": ["计算机视觉", "computer vision"]},
+      {"name": "Agent/智能体", "aliases": ["agent", "智能体", "ai agent"]},
+      {"name": "RAG", "aliases": ["rag", "检索增强"]},
+      {"name": "Prompt", "aliases": ["prompt", "提示词"]},
+      {"name": "工作流", "aliases": ["工作流", "workflow", "编排"]},
+      {"name": "多模态", "aliases": ["多模态", "multimodal"]},
+      {"name": "生成式AI", "aliases": ["生成式", "generative ai"]},
+      {"name": "向量数据库", "aliases": ["向量数据库", "vector database", "milvus", "faiss"]},
+      {"name": "LangChain", "aliases": ["langchain"]},
+      {"name": "Dify", "aliases": ["dify"]},
+      {"name": "Coze", "aliases": ["coze", "扣子"]},
+      {"name": "知识库", "aliases": ["知识库", "knowledge base"]},
+      {"name": "微调", "aliases": ["微调", "fine-tune", "finetune", "sft"]},
+      {"name": "A/B测试", "aliases": ["a/b测试", "ab测试", "ab test"]},
+      {"name": "数据埋点", "aliases": ["数据埋点", "埋点"]},
+      {"name": "API", "aliases": ["api", "接口"]},
+      {"name": "SaaS", "aliases": ["saas"]}
+    ],
+    "产品": [
+      {"name": "需求分析", "aliases": ["需求分析"]},
+      {"name": "PRD", "aliases": ["prd"]},
+      {"name": "用户研究", "aliases": ["用户研究", "用户调研"]},
+      {"name": "产品设计", "aliases": ["产品设计"]},
+      {"name": "数据驱动", "aliases": ["数据驱动"]},
+      {"name": "B端产品", "aliases": ["b端", "后台产品"]},
+      {"name": "商业化", "aliases": ["商业化"]}
+    ],
+    "运营与增长": [
+      {"name": "用户增长", "aliases": ["用户增长", "增长黑客"]},
+      {"name": "内容运营", "aliases": ["内容运营"]},
+      {"name": "活动运营", "aliases": ["活动运营"]},
+      {"name": "社群运营", "aliases": ["社群运营"]},
+      {"name": "投放", "aliases": ["投放", "信息流"]},
+      {"name": "SEO", "aliases": ["seo"]},
+      {"name": "私域", "aliases": ["私域"]}
+    ],
+    "设计": [
+      {"name": "Figma", "aliases": ["figma"]},
+      {"name": "Sketch", "aliases": ["sketch"]},
+      {"name": "交互设计", "aliases": ["交互设计"]},
+      {"name": "视觉设计", "aliases": ["视觉设计"]},
+      {"name": "用户体验", "aliases": ["用户体验", "ux"]},
+      {"name": "UI设计", "aliases": ["ui设计", "ui"]}
+    ],
+    "测试与运维": [
+      {"name": "自动化测试", "aliases": ["自动化测试"]},
+      {"name": "性能测试", "aliases": ["性能测试"]},
+      {"name": "CI/CD", "aliases": ["ci/cd", "cicd"]},
+      {"name": "监控", "aliases": ["监控", "prometheus", "grafana"]}
+    ],
+    "通用": [
+      {"name": "英语", "aliases": ["英语", "english"]},
+      {"name": "团队管理", "aliases": ["团队管理", "团队协作"]},
+      {"name": "项目管理", "aliases": ["项目管理", "pmp"]},
+      {"name": "沟通能力", "aliases": ["沟通能力"]},
+      {"name": "抗压能力", "aliases": ["抗压"]}
+    ]
+  }
+}

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareeSeek 简历 × 岗位匹配报告</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f4f6f9;color:#1b1f27;line-height:1.65}
+  a{color:#2563eb;text-decoration:none}
+  .wrap{max-width:1240px;margin:0 auto;padding:24px 20px 64px}
+  .hero{background:linear-gradient(135deg,#0f766e,#0d9488 55%,#14b8a6);color:#fff;border-radius:18px;padding:28px 30px;margin-bottom:22px;box-shadow:0 10px 30px rgba(13,148,136,.25)}
+  .hero h1{margin:0 0 6px;font-size:26px;font-weight:700}
+  .hero .sub{opacity:.88;font-size:13px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:4px 10px;border-radius:999px;font-size:12px}
+  .section{background:#fff;border:1px solid #e5e8ee;border-radius:16px;padding:22px 24px;margin-bottom:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .section h2{margin:0 0 4px;font-size:18px}
+  .section .desc{color:#6b7280;font-size:12.5px;margin-bottom:16px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px}
+  .stat{background:#f8fafc;border:1px solid #e5e8ee;border-radius:12px;padding:14px 16px}
+  .stat .k{font-size:12px;color:#6b7280}
+  .stat .v{font-size:24px;font-weight:700;margin-top:2px}
+  .stat .h{font-size:12px;color:#94a3b8;margin-top:2px}
+  .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+  .chart-card{border:1px solid #e5e8ee;border-radius:12px;padding:12px 14px 10px;background:#fff}
+  .chart-card h3{margin:0 0 2px;font-size:14px}
+  .chart-card .hint{font-size:11.5px;color:#94a3b8;margin-bottom:6px}
+  .chart{height:300px;width:100%}
+  .chart.tall{height:340px}
+  .conclusion{font-size:12.5px;color:#374151;background:#f8fafc;border-left:3px solid #0d9488;padding:8px 11px;border-radius:0 8px 8px 0;margin-top:8px}
+  .conclusion b{color:#0f766e}
+  .bands{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .band{border:1px solid #e5e8ee;border-radius:12px;padding:14px 16px;background:#fcfdff}
+  .band h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .band .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .band ul{margin:0;padding-left:18px;font-size:12.5px}
+  .band li{margin:4px 0}
+  .table-wrap{overflow:auto;max-height:640px;border:1px solid #e5e8ee;border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1080px}
+  thead th{position:sticky;top:0;background:#f8fafc;text-align:left;padding:10px;border-bottom:1px solid #e5e8ee;white-space:nowrap;z-index:2}
+  tbody td{padding:9px 10px;border-bottom:1px solid #f1f4f8;vertical-align:top}
+  tbody tr:hover{background:#f8fafc}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .score{display:inline-block;min-width:46px;text-align:center;padding:2px 8px;border-radius:999px;font-weight:600;font-size:12px}
+  .score.hi{background:#dcfce7;color:#15803d}
+  .score.mid{background:#fef3c7;color:#b45309}
+  .score.low{background:#fee2e2;color:#b91c1c}
+  .skill{display:inline-block;background:#eef2f7;color:#374151;border-radius:5px;padding:1px 6px;font-size:11px;margin:1px 3px 1px 0}
+  .skill.miss{background:#fef2f2;color:#b91c1c}
+  .suggestions{margin:0;padding-left:20px}
+  .suggestions li{margin:8px 0;font-size:13px}
+  .note{font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 9px;margin-top:8px}
+  .empty{color:#94a3b8;font-size:13px;padding:8px 0}
+  .chart-fallback{color:#94a3b8;font-size:13px;padding:20px;text-align:center}
+  details summary{cursor:pointer;font-size:13px;color:#374151;font-weight:600;margin-bottom:8px}
+  .compliance{white-space:pre-wrap;font-size:12px;color:#6b7280;line-height:1.75}
+  footer{color:#8b95a5;font-size:11.5px;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>CareeSeek 简历 × 岗位匹配报告</h1>
+    <div class="sub" id="heroSub"></div>
+    <div class="chips" id="heroChips"></div>
+  </header>
+
+  <section class="section">
+    <h2>匹配总览</h2>
+    <div class="desc">先看结论：最佳匹配、匹配分布、薪资缺口与投递分档</div>
+    <div class="cards" id="statCards"></div>
+    <div id="flags" style="margin-top:12px"></div>
+  </section>
+
+  <section class="section">
+    <h2>一、匹配质量</h2>
+    <div class="desc">匹配分 = 技能 40 + 经验 20 + 学历 10 + 薪资 15 + 城市 5 + 方向 10</div>
+    <div class="chart-grid">
+      <div class="chart-card"><h3>最佳匹配度</h3><div class="hint">Top 1 岗位的综合得分</div><div id="chart-gauge" class="chart"></div><div class="conclusion" id="concl-gauge"></div></div>
+      <div class="chart-card"><h3>技能覆盖雷达</h3><div class="hint">Top 岗位需求 vs 简历覆盖</div><div id="chart-radar" class="chart"></div><div class="conclusion" id="concl-radar"></div></div>
+      <div class="chart-card"><h3>Top 10 岗位匹配分</h3><div class="hint">分数越高越值得优先投递</div><div id="chart-top" class="chart tall"></div><div class="conclusion" id="concl-top"></div></div>
+      <div class="chart-card"><h3>薪资 × 匹配分</h3><div class="hint">找“分数够、薪资也合适”的岗位</div><div id="chart-scatter" class="chart"></div><div class="conclusion" id="concl-scatter"></div></div>
+      <div class="chart-card"><h3>投递分档</h3><div class="hint">冲 ≥75 / 稳 60–74 / 保 45–59</div><div id="chart-bands" class="chart"></div><div class="conclusion" id="concl-bands"></div></div>
+      <div class="chart-card"><h3>技能缺口</h3><div class="hint">Top 20 岗位中缺失次数最多的技能</div><div id="chart-gaps" class="chart tall"></div><div class="conclusion" id="concl-gaps"></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>二、投递策略</h2>
+    <div class="desc">冲 / 稳 / 保三档，先投高分岗位，再用缺口补强</div>
+    <div class="bands" id="bandWrap"></div>
+  </section>
+
+  <section class="section">
+    <h2>三、匹配岗位明细</h2>
+    <div class="desc">按匹配分降序，展示命中/缺失技能与匹配说明</div>
+    <div class="table-wrap">
+      <table id="matchTable">
+        <thead><tr>
+          <th>#</th><th>岗位</th><th>公司</th><th>城市</th><th class="num">月薪中位</th><th class="num">匹配分</th>
+          <th>命中技能</th><th>缺失技能</th><th>匹配说明</th>
+        </tr></thead>
+        <tbody id="matchBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>四、简历优化建议</h2>
+    <div class="desc">基于 Top 岗位的高频要求生成，按优先级排序</div>
+    <ul class="suggestions" id="suggestionList"></ul>
+  </section>
+
+  <section class="section">
+    <h2>五、附录</h2>
+    <details><summary>方法与口径</summary><div id="methodWrap" class="compliance"></div></details>
+    <details style="margin-top:10px"><summary>合规声明</summary><div id="complianceWrap" class="compliance"></div></details>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>/*__ECHARTS__*/</script>
+<script>
+const PAYLOAD = __PAYLOAD__;
+(function () {
+  "use strict";
+  const P = PAYLOAD || {};
+  const cfg = P.config || {};
+  const M = P.match || {};
+  const resume = M.resume || {};
+  const stats = M.stats || {};
+  const ranked = M.ranked || [];
+  const gaps = M.gaps || [];
+  const radar = M.radar || { indicators: [], demand: [], candidate: [] };
+  const bands = M.bands || { 冲: [], 稳: [], 保: [] };
+  const salaryGap = M.salary_gap || {};
+
+  const $ = function (sel) { return document.querySelector(sel); };
+  const esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  };
+  const fmt = function (v, suffix) { return v == null ? "—" : String(v) + (suffix || ""); };
+  const charts = [];
+  function chart(id, option) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!window.echarts) { el.innerHTML = '<div class="chart-fallback">ECharts 未加载</div>'; return; }
+    const instance = echarts.init(el, null, { renderer: "canvas" });
+    instance.setOption(option);
+    charts.push(instance);
+  }
+  window.addEventListener("resize", function () { charts.forEach(function (c) { c.resize(); }); });
+  function concl(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+  function scorePill(v) {
+    const cls = v >= 75 ? "hi" : (v >= 55 ? "mid" : "low");
+    return '<span class="score ' + cls + '">' + v + '</span>';
+  }
+  function bandColor(v) { return v >= 75 ? "#059669" : (v >= 60 ? "#d97706" : (v >= 45 ? "#64748b" : "#dc2626")); }
+
+  /* hero */
+  const chips = [];
+  if (resume.name) chips.push("候选人：" + resume.name);
+  if (resume.years_experience != null) chips.push("经验：" + resume.years_experience + " 年");
+  if (resume.education) chips.push("学历：" + resume.education);
+  if (resume.city) chips.push("城市：" + resume.city);
+  if (resume.expected_salary && (resume.expected_salary.min_k || resume.expected_salary.max_k)) {
+    chips.push("期望月薪：" + fmt(resume.expected_salary.min_k, "K") + "–" + fmt(resume.expected_salary.max_k, "K"));
+  }
+  (resume.skills || []).slice(0, 8).forEach(function (s) { chips.push(s); });
+  $("#heroSub").textContent = "run " + ((P.meta && P.meta.run_id) || "") + " · 生成于 " + ((P.meta && P.meta.generated_at) || "") + " · 对比 " + (stats.jobs || ranked.length) + " 个岗位";
+  $("#heroChips").innerHTML = chips.map(function (c) { return '<span class="chip">' + esc(c) + '</span>'; }).join("");
+
+  /* stats */
+  const kpis = [
+    ["对比岗位数", stats.jobs || ranked.length, "去重后的岗位"],
+    ["最佳匹配分", fmt(stats.best), stats.best_job ? stats.best_job.company + " · " + stats.best_job.title : ""],
+    ["平均匹配分", fmt(stats.avg), "全部岗位均值"],
+    ["期望 vs 匹配中位", salaryGap.delta_pct == null ? "—" : (salaryGap.delta_pct > 0 ? "+" : "") + salaryGap.delta_pct + "%", fmt(salaryGap.expected_mid, "K") + " vs " + fmt(salaryGap.matched_median, "K")],
+    ["冲/稳/保", (stats.band_counts && (stats.band_counts["冲"] + " / " + stats.band_counts["稳"] + " / " + stats.band_counts["保"])) || "—", "≥75 / 60–74 / 45–59"]
+  ];
+  $("#statCards").innerHTML = kpis.map(function (k) {
+    return '<div class="stat"><div class="k">' + esc(k[0]) + '</div><div class="v">' + esc(k[1]) + '</div><div class="h">' + esc(k[2]) + '</div></div>';
+  }).join("");
+  $("#flags").innerHTML = (salaryGap.delta_pct != null && Math.abs(salaryGap.delta_pct) > 20)
+    ? '<div class="note">期望薪资与匹配岗位中位相差 ' + salaryGap.delta_pct + "%，建议参考下方「投递策略」与「简历优化建议」调整。</div>"
+    : "";
+
+  /* gauge */
+  chart("chart-gauge", {
+    series: [{
+      type: "gauge", min: 0, max: 100, startAngle: 210, endAngle: -30,
+      progress: { show: true, width: 14, itemStyle: { color: "#0d9488" } },
+      axisLine: { lineStyle: { width: 14, color: [[1, "#e5e8ee"]] } },
+      axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
+      pointer: { show: false },
+      detail: { valueAnimation: true, fontSize: 34, offsetCenter: [0, "5%"], formatter: "{value}" },
+      data: [{ value: stats.best || 0 }]
+    }]
+  });
+  concl("concl-gauge", stats.best_job ? "最佳匹配：<b>" + esc(stats.best_job.title) + "</b> @ " + esc(stats.best_job.company) + "，综合得分 <b>" + stats.best + "</b>。" : "暂无匹配结果。");
+
+  /* radar */
+  chart("chart-radar", {
+    tooltip: {},
+    legend: { bottom: 0, itemWidth: 10, itemHeight: 10, textStyle: { fontSize: 10.5 } },
+    radar: {
+      indicator: radar.indicators.map(function (name) { return { name: name, max: 100 }; }),
+      radius: "62%", center: ["50%", "45%"], axisName: { fontSize: 10.5 }
+    },
+    series: [{
+      type: "radar", data: [
+        { name: "简历覆盖", value: radar.candidate, areaStyle: { opacity: .18 }, lineStyle: { color: "#0d9488" }, itemStyle: { color: "#0d9488" } },
+        { name: "岗位需求", value: radar.demand, areaStyle: { opacity: .12 }, lineStyle: { color: "#d97706" }, itemStyle: { color: "#d97706" } }
+      ]
+    }]
+  });
+  const covered = (radar.candidate || []).filter(function (v) { return v > 0; }).length;
+  concl("concl-radar", radar.indicators.length ? "Top 岗位最需要的技能：" + radar.indicators.slice(0, 5).map(esc).join("、") + "；简历覆盖 <b>" + covered + "/" + radar.indicators.length + "</b> 项。" : "技能需求数据不足。");
+
+  /* top jobs bar */
+  const top = (M.top || []).slice(0, 10);
+  chart("chart-top", {
+    tooltip: { trigger: "axis", formatter: function (ps) { const p = ps[0]; return esc(p.name) + "<br/>匹配分 " + p.value; } },
+    grid: { left: 150, right: 40, top: 10, bottom: 28 },
+    xAxis: { type: "value", max: 100, name: "分" },
+    yAxis: { type: "category", inverse: true, data: top.map(function (x) { return x.title + " · " + x.company; }), axisLabel: { fontSize: 10.5, width: 140, overflow: "truncate" } },
+    series: [{
+      type: "bar", data: top.map(function (x) { return { value: x.score, itemStyle: { color: bandColor(x.score), borderRadius: [0, 4, 4, 0] } }; }),
+      label: { show: true, position: "right", fontSize: 10.5 }
+    }]
+  });
+  const top60 = top.filter(function (x) { return x.score >= 60; }).length;
+  concl("concl-top", "前 10 个岗位中有 <b>" + top60 + "</b> 个匹配分 ≥60；优先投递深绿色（≥75）与橙色（60–74）岗位。");
+
+  /* scatter */
+  chart("chart-scatter", {
+    tooltip: { formatter: function (p) { return esc(p.value[2]) + "<br/>月薪中位 " + p.value[0] + "K<br/>匹配分 " + p.value[1]; } },
+    grid: { left: 48, right: 24, top: 24, bottom: 34 },
+    xAxis: { type: "value", name: "月薪中位 K" },
+    yAxis: { type: "value", name: "匹配分", max: 100 },
+    series: [{
+      type: "scatter",
+      data: ranked.map(function (x) { return [x.salary_mid_k, x.score, x.title + " @ " + x.company]; }),
+      symbolSize: 12,
+      itemStyle: { color: function (p) { return bandColor(p.value[1]); }, opacity: .8 }
+    }]
+  });
+  concl("concl-scatter", salaryGap.matched_median != null ? "Top 20 岗位薪资中位 <b>" + salaryGap.matched_median + "K</b>；期望 " + fmt(salaryGap.expected_mid, "K") + (salaryGap.delta_pct != null ? "（" + (salaryGap.delta_pct > 0 ? "+" : "") + salaryGap.delta_pct + "%）" : "") + "。找分数与薪资兼得的点位。" : "薪资数据不足。");
+
+  /* bands donut */
+  const bandCounts = stats.band_counts || {};
+  chart("chart-bands", {
+    tooltip: { trigger: "item", formatter: "{b}: {c} 个 ({d}%)" },
+    legend: { bottom: 0, itemWidth: 10, itemHeight: 10, textStyle: { fontSize: 10.5 } },
+    series: [{
+      type: "pie", radius: ["42%", "68%"], center: ["50%", "42%"],
+      data: [
+        { name: "冲 (≥75)", value: bandCounts["冲"] || 0, itemStyle: { color: "#059669" } },
+        { name: "稳 (60–74)", value: bandCounts["稳"] || 0, itemStyle: { color: "#d97706" } },
+        { name: "保 (45–59)", value: bandCounts["保"] || 0, itemStyle: { color: "#64748b" } },
+        { name: "不推荐 (<45)", value: bandCounts["不推荐"] || 0, itemStyle: { color: "#dc2626" } }
+      ],
+      label: { fontSize: 10.5 }, itemStyle: { borderColor: "#fff", borderWidth: 2 }
+    }]
+  });
+  concl("concl-bands", "冲 " + (bandCounts["冲"] || 0) + " 个 / 稳 " + (bandCounts["稳"] || 0) + " 个 / 保 " + (bandCounts["保"] || 0) + " 个；先集中投递冲与稳，保留 1–2 个保底。");
+
+  /* gaps */
+  const gapRows = gaps.slice(0, 12);
+  chart("chart-gaps", {
+    tooltip: { trigger: "axis", formatter: function (ps) { const p = ps[0]; return esc(p.name) + "<br/>缺失 " + p.value + " 次"; } },
+    grid: { left: 110, right: 40, top: 10, bottom: 28 },
+    xAxis: { type: "value", name: "缺失次数" },
+    yAxis: { type: "category", inverse: true, data: gapRows.map(function (g) { return g.skill; }), axisLabel: { fontSize: 10.5 } },
+    series: [{ type: "bar", data: gapRows.map(function (g) { return g.missing_count; }), itemStyle: { color: "#dc2626", borderRadius: [0, 4, 4, 0] }, label: { show: true, position: "right", fontSize: 10.5 } }]
+  });
+  concl("concl-gaps", gapRows.length ? "最缺的技能：" + gapRows.slice(0, 5).map(function (g) { return esc(g.skill) + "（" + g.missing_count + " 次）"; }).join("、") + "。优先用项目经历补齐。" : "没有明显技能缺口。");
+
+  /* bands */
+  const bandWrap = $("#bandWrap");
+  const bandMeta = [
+    ["冲", "#059669", "高匹配，优先投递"],
+    ["稳", "#d97706", "匹配良好，作为主力"],
+    ["保", "#64748b", "有一定差距，保底投递"]
+  ];
+  bandWrap.innerHTML = bandMeta.map(function (meta) {
+    const list = bands[meta[0]] || [];
+    return '<div class="band"><h3><span class="dot" style="background:' + meta[1] + '"></span>' + meta[0] + ' <span class="badge" style="font-size:11px;color:#6b7280">' + meta[2] + '</span></h3>' +
+      (list.length ? "<ul>" + list.map(function (x) { return "<li>" + esc(x.title) + " @ " + esc(x.company) + " <span style='color:#6b7280'>(" + x.score + ")</span></li>"; }).join("") + "</ul>" : '<div class="empty">暂无岗位</div>') +
+      "</div>";
+  }).join("");
+
+  /* table */
+  const matchBody = $("#matchBody");
+  matchBody.innerHTML = ranked.slice(0, 30).map(function (x, i) {
+    const matched = (x.matched_skills || []).slice(0, 5).map(function (s) { return '<span class="skill">' + esc(s) + '</span>'; }).join("") || "—";
+    const missing = (x.missing_skills || []).slice(0, 5).map(function (s) { return '<span class="skill miss">' + esc(s) + '</span>'; }).join("") || "—";
+    const reasons = (x.reasons || []).join("；");
+    return "<tr>" +
+      "<td>" + (i + 1) + "</td>" +
+      '<td><div style="font-weight:600">' + esc(x.title) + '</div><div style="font-size:11px;color:#94a3b8">' + esc(x.level || "") + "</div></td>" +
+      "<td>" + esc(x.company) + "</td>" +
+      "<td>" + esc(x.city) + "</td>" +
+      '<td class="num">' + fmt(x.salary_mid_k, "K") + "</td>" +
+      '<td class="num">' + scorePill(x.score) + "</td>" +
+      "<td>" + matched + "</td>" +
+      "<td>" + missing + "</td>" +
+      '<td title="' + esc(reasons) + '">' + esc((x.reasons || [])[0] || "—") + (x.url ? ' <a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">查看</a>' : "") + "</td>" +
+      "</tr>";
+  }).join("") || '<tr><td colspan="9"><div class="empty">暂无匹配结果</div></td></tr>';
+
+  /* suggestions */
+  $("#suggestionList").innerHTML = (M.suggestions || []).map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") || '<li class="empty">暂无建议</li>';
+
+  /* appendix */
+  $("#methodWrap").textContent =
+    "匹配分 = 技能覆盖 40 + 经验契合 20 + 学历 10 + 薪资契合 15 + 城市 5 + 方向 10。\n" +
+    "技能覆盖 = 岗位要求的技能中，简历已具备的比例；缺失技能用于简历优化建议。\n" +
+    "经验契合：满足岗位经验区间满分；略低于下限降档；差距较大大幅降档。\n" +
+    "薪资契合：岗位月薪中位与期望月薪中值的相对偏差。\n" +
+    "投递分档为启发式：冲 ≥75、稳 60–74、保 45–59、<45 不推荐；请结合公司背调与个人偏好调整。";
+  $("#complianceWrap").textContent = P.compliance || "本报告为个人求职参考，请结合多方信息独立判断。";
+  $("#footer").textContent = "CareeSeek · 简历 × 岗位匹配 · 数据快照于 " + ((P.meta && P.meta.generated_at) || "");
+})();
+</script>
+</body>
+</html>

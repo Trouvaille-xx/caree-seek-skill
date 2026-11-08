@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CareeSeek company profile",
+  "type": "object",
+  "properties": {
+    "company_key": { "type": "string" },
+    "display_name": { "type": "string" },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "tier": { "enum": ["tier1", "tier2", "tier3", "unknown"] },
+    "funding_stage": { "type": "string" },
+    "size": { "type": "string" },
+    "industry": { "type": "string" },
+    "founded": { "type": "string" },
+    "founder": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "background": { "type": "string" },
+        "confidence": { "enum": ["high", "med", "low"] }
+      }
+    },
+    "recent_news": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "headline": { "type": "string" },
+          "date": { "type": "string" },
+          "url": { "type": "string" }
+        }
+      }
+    },
+    "risk_signals": { "type": "array", "items": { "type": "string" } },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string" },
+          "date": { "type": "string" }
+        }
+      }
+    },
+    "confidence": { "enum": ["high", "med", "low"] },
+    "disambiguation_note": { "type": "string" },
+    "fetched_at": { "type": "string" }
+  },
+  "required": ["company_key", "display_name", "risk_signals", "sources", "confidence"]
+}

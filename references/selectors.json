@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-11-08",
+  "notes": "Boss直聘页面结构会持续变化。发现选择器失效时，按 playbook-boss.md 的修复协议更新本文件，不要改脚本。",
+  "boss": {
+    "base_url": "https://www.zhipin.com",
+    "search_url_template": "https://www.zhipin.com/web/geek/job?query={query}&city={city_code}&page={page}",
+    "city_codes": {
+      "全国": "100010000",
+      "北京": "101010100",
+      "上海": "101020100",
+      "广州": "101280100",
+      "深圳": "101280600",
+      "杭州": "101210100",
+      "成都": "101270100",
+      "南京": "101190100",
+      "武汉": "101200100",
+      "西安": "101110100",
+      "苏州": "101190400",
+      "天津": "101030100"
+    },
+    "login_wall_patterns": ["登录后查看", "请登录", "扫码登录", "登录/注册", "立即登录"],
+    "captcha_patterns": ["安全验证", "请完成验证", "滑动", "拖动", "验证码", "访问异常", "操作频繁", "环境异常"],
+    "list_card_selectors": [".job-card-wrapper", "li.job-card-box", ".job-list-box .job-card-wrapper"],
+    "list_field_hints": {
+      "title": [".job-name", ".job-title"],
+      "company": [".company-name", ".company-info h3"],
+      "salary_text": [".salary", ".job-salary"],
+      "city": [".job-area", ".job-area-wrapper"],
+      "exp_text": [".job-info .tag-list li", ".tag-list li"],
+      "edu": [".job-info .tag-list li"],
+      "tags": [".job-tags span", ".tag-list li"]
+    },
+    "detail_selectors": {
+      "title": [".job-banner .name h1", ".job-banner .name", ".job-name"],
+      "company": [".sider-company .company-info", ".job-banner .company-info h3", ".company-info .company-name"],
+      "salary_text": [".job-banner .salary", ".salary"],
+      "city": [".job-banner .text-city", ".job-banner .info .text-city"],
+      "exp_text": [".job-banner .text-experiece", ".job-banner .info .text-experiece"],
+      "edu": [".job-banner .text-degree", ".job-banner .info .text-degree"],
+      "raw_text": [".job-sec-text", ".job-detail-section .job-sec-text", ".job-detail"],
+      "posted_at": [".job-banner .info .time", ".job-time"],
+      "benefits": [".job-tags span", ".job-benefits .tag-all span", ".job-benefits .tag-all .tag-item"]
+    },
+    "extract_list_script": "references/extract-list.js",
+    "extract_list_api_script": "references/extract-list-api.js",
+    "extract_detail_script": "references/extract-detail.js",
+    "joblist_api": {
+      "url_template": "/wapi/zpgeek/search/joblist.json?scene=1&query={query}&city={city_code}&page={page}&pageSize={page_size}",
+      "notes": "在搜索页的页面上下文用同源 fetch 调用；返回明文薪资与公司行业/规模/融资阶段。DOM 中的薪资数字是自定义字体渲染，读不得。",
+      "max_page_size": 30
+    }
+  }
+}

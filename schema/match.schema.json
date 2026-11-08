@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CareeSeek resume match result",
+  "type": "object",
+  "properties": {
+    "run_id": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "resume": { "type": "object" },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "jobs": { "type": "integer" },
+        "best": { "type": ["number", "null"] },
+        "best_job": { "type": ["object", "null"] },
+        "avg": { "type": ["number", "null"] },
+        "median": { "type": ["number", "null"] },
+        "band_counts": { "type": "object" }
+      }
+    },
+    "ranked": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "string" },
+          "title": { "type": "string" },
+          "company": { "type": "string" },
+          "city": { "type": "string" },
+          "salary_mid_k": { "type": ["number", "null"] },
+          "score": { "type": "number" },
+          "matched_skills": { "type": "array" },
+          "missing_skills": { "type": "array" },
+          "breakdown": { "type": "object" },
+          "reasons": { "type": "array" },
+          "url": { "type": "string" }
+        }
+      }
+    },
+    "gaps": { "type": "array" },
+    "radar": {
+      "type": "object",
+      "properties": {
+        "indicators": { "type": "array" },
+        "demand": { "type": "array" },
+        "candidate": { "type": "array" }
+      }
+    },
+    "bands": { "type": "object" },
+    "salary_gap": { "type": "object" },
+    "suggestions": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["run_id", "resume", "ranked", "stats", "suggestions"]
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CareeSeek resume profile",
+  "type": "object",
+  "properties": {
+    "text": { "type": "string", "description": "简历原始文本" },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "years_experience": { "type": "number" },
+        "education": { "enum": ["博士", "硕士", "本科", "大专", "其他"] },
+        "city": { "type": "string" },
+        "expected_salary": {
+          "type": "object",
+          "properties": {
+            "min_k": { "type": ["number", "null"] },
+            "max_k": { "type": ["number", "null"] },
+            "months": { "type": "integer" }
+          }
+        },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "titles": { "type": "array", "items": { "type": "string" } },
+        "industries": { "type": "array", "items": { "type": "string" } },
+        "strengths": { "type": "array", "items": { "type": "string" } },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "summary": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["text"]
+}

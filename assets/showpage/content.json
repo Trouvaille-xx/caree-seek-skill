@@ -1,0 +1,52 @@
+{
+  "name": "CareeSeek",
+  "tagline": {
+    "zh": { "pre": "让 AI 先替你跑一遍", "hl": "求职市场", "post": "，再决定投哪家" },
+    "en": { "pre": "Run your ", "hl": "job market", "post": " research before you apply" }
+  },
+  "capabilities": [
+    {
+      "icon": "radar",
+      "title": { "zh": "意向驱动检索", "en": "Intent-first search" },
+      "desc": {
+        "zh": "先问城市、年限、岗位、行业、薪资，都能跳过。",
+        "en": "Ask city, level, role, pay — skip anything."
+      }
+    },
+    {
+      "icon": "chart",
+      "title": { "zh": "月薪与阶梯", "en": "Pay & ladders" },
+      "desc": {
+        "zh": "P25/中位/P75、折算月薪、四种阶梯，图先行。",
+        "en": "P25/median/P75, four ladder views — charts first."
+      }
+    },
+    {
+      "icon": "doc",
+      "title": { "zh": "简历匹配", "en": "Resume match" },
+      "desc": {
+        "zh": "读 PDF/Word，出排序、差距、优化建议与冲稳保。",
+        "en": "Read PDF/Word; rank jobs, show gaps and fixes."
+      }
+    },
+    {
+      "icon": "search",
+      "title": { "zh": "公司背调", "en": "Company check" },
+      "desc": {
+        "zh": "公开信息查创始人、融资、风险，标注置信度。",
+        "en": "Founder, funding, risk — confidence marked."
+      }
+    }
+  ],
+  "flow": {
+    "nodes": [
+      { "zh": "访谈意向", "en": "set intent" },
+      { "zh": "检索岗位", "en": "scan jobs" },
+      { "zh": "出三份报告", "en": "three reports" }
+    ]
+  },
+  "quickstart": "python scripts/preflight.py",
+  "url": "github.com/Trouvaille-xx/caree-seek-skill",
+  "handle": "@Trouvaille-xx",
+  "meta": ["Python", "ECharts"]
+}
