@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="assets/showpage/showcase.zh.svg" alt="CareeSeek — 让 AI 先替你跑一遍求职市场，再决定投哪家" width="100%">
+  <img src="assets/showpage/showcase.zh.svg" alt="CareeSeek — 市场定义区间，简历定义匹配" width="100%">
 </p>
 
 <h1 align="center">CareeSeek</h1>
 
 <p align="center">
-  把招聘网站上的岗位，变成一份可决策的求职报告。<br>
-  Turn job listings into decision-ready career reports.
+  市场定义区间，简历定义匹配。<br>
+  The market sets the range. Your résumé sets the fit.
 </p>
 
 <p align="center">
@@ -177,7 +177,7 @@ caree-seek-skill/
 ## English
 
 <p align="center">
-  <img src="assets/showpage/showcase.en.svg" alt="CareeSeek — Run your job market research before you apply" width="100%">
+  <img src="assets/showpage/showcase.en.svg" alt="CareeSeek — The market sets the range. Your résumé sets the fit." width="100%">
 </p>
 
 ### What it is

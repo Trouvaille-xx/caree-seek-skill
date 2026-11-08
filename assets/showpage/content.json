@@ -1,8 +1,8 @@
 {
   "name": "CareeSeek",
   "tagline": {
-    "zh": { "pre": "让 AI 先替你跑一遍", "hl": "求职市场", "post": "，再决定投哪家" },
-    "en": { "pre": "Run your ", "hl": "job market", "post": " research before you apply" }
+    "zh": { "pre": "市场定义区间，简历定义", "hl": "匹配", "post": "。" },
+    "en": { "pre": "The market sets the range. Your résumé sets the ", "hl": "fit", "post": "." }
   },
   "capabilities": [
     {
