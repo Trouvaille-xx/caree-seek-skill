@@ -50,11 +50,27 @@
   .skill.miss{background:#fef2f2;color:#b91c1c}
   .suggestions{margin:0;padding-left:20px}
   .suggestions li{margin:8px 0;font-size:13px}
+  .jump{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #99f6e4;background:#f0fdfa;color:#0f766e;font-size:11px;line-height:1.6;white-space:nowrap;text-decoration:none}
+  .jump:hover{background:#ccfbf1;text-decoration:none}
+  .jump.disabled{padding:2px 8px;border-radius:6px;border:1px solid #e5e7eb;background:#f9fafb;color:#9ca3af;font-size:11px;line-height:1.6;white-space:nowrap;margin-left:6px}
+  .jump-cell{white-space:nowrap}
   .note{font-size:12px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 9px;margin-top:8px}
   .empty{color:#94a3b8;font-size:13px;padding:8px 0}
   .chart-fallback{color:#94a3b8;font-size:13px;padding:20px;text-align:center}
   details summary{cursor:pointer;font-size:13px;color:#374151;font-weight:600;margin-bottom:8px}
   .compliance{white-space:pre-wrap;font-size:12px;color:#6b7280;line-height:1.75}
+  .rec-banner{border-radius:12px;padding:14px 18px;margin:0 0 16px;border:1px solid transparent;font-size:13px;line-height:1.7}
+  .rec-banner.ok{background:#f0fdf4;border-color:#bbf7d0;color:#065f46}
+  .rec-banner.partial{background:#fffbeb;border-color:#fde68a;color:#92400e}
+  .rec-banner.insufficient{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+  .rec-banner b{font-size:15px}
+  .rec-banner ul{margin:6px 0 0;padding-left:20px}
+  .rec-banner li{margin:2px 0}
+  .rec-pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;white-space:nowrap;border:1px solid transparent}
+  .rec-pill.ok{background:#dcfce7;color:#15803d;border-color:#bbf7d0}
+  .rec-pill.consider{background:#fef3c7;color:#b45309;border-color:#fde68a}
+  .rec-pill.pending{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
+  .rec-pill.bad{background:#fee2e2;color:#b91c1c;border-color:#fecaca}
   footer{color:#8b95a5;font-size:11.5px;text-align:center;margin-top:8px}
 </style>
 </head>
@@ -69,13 +85,14 @@
   <section class="section">
     <h2>匹配总览</h2>
     <div class="desc">先看结论：最佳匹配、匹配分布、薪资缺口与投递分档</div>
+    <div id="recBanner"></div>
     <div class="cards" id="statCards"></div>
     <div id="flags" style="margin-top:12px"></div>
   </section>
 
   <section class="section">
     <h2>一、匹配质量</h2>
-    <div class="desc">匹配分 = 技能 40 + 经验 20 + 学历 10 + 薪资 15 + 城市 5 + 方向 10</div>
+    <div class="desc">匹配分 = 技能 40 + 经验 20 + 学历 10 + 薪资 15 + 城市 5 + 方向 10；启用通勤时按超出程度扣 5–20 分</div>
     <div class="chart-grid">
       <div class="chart-card"><h3>最佳匹配度</h3><div class="hint">Top 1 岗位的综合得分</div><div id="chart-gauge" class="chart"></div><div class="conclusion" id="concl-gauge"></div></div>
       <div class="chart-card"><h3>技能覆盖雷达</h3><div class="hint">Top 岗位需求 vs 简历覆盖</div><div id="chart-radar" class="chart"></div><div class="conclusion" id="concl-radar"></div></div>
@@ -88,7 +105,7 @@
 
   <section class="section">
     <h2>二、投递策略</h2>
-    <div class="desc">冲 / 稳 / 保三档，先投高分岗位，再用缺口补强</div>
+    <div class="desc">冲 / 稳 / 保三档：可尝试、主投、练手，各有节奏</div>
     <div class="bands" id="bandWrap"></div>
   </section>
 
@@ -99,7 +116,7 @@
       <table id="matchTable">
         <thead><tr>
           <th>#</th><th>岗位</th><th>公司</th><th>城市</th><th class="num">月薪中位</th><th class="num">匹配分</th>
-          <th>命中技能</th><th>缺失技能</th><th>匹配说明</th>
+          <th>通勤距离</th><th>推荐结论</th><th>命中技能</th><th>缺失技能</th><th>匹配说明</th><th>跳转</th>
         </tr></thead>
         <tbody id="matchBody"></tbody>
       </table>
@@ -159,6 +176,14 @@ const PAYLOAD = __PAYLOAD__;
     const cls = v >= 75 ? "hi" : (v >= 55 ? "mid" : "low");
     return '<span class="score ' + cls + '">' + v + '</span>';
   }
+  function recPill(label, reason) {
+    const cls = { "推荐": "ok", "可考虑": "consider", "待核实": "pending", "不推荐": "bad" }[label] || "pending";
+    return '<span class="rec-pill ' + cls + '"' + (reason ? ' title="' + esc(reason) + '"' : "") + '>' + esc(label || "—") + '</span>';
+  }
+  function jumpButton(url) {
+    if (!url) return '<span class="jump disabled" title="原始采集数据没有岗位链接">无链接</span>';
+    return '<a class="jump" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">查看岗位 ↗</a>';
+  }
   function bandColor(v) { return v >= 75 ? "#059669" : (v >= 60 ? "#d97706" : (v >= 45 ? "#64748b" : "#dc2626")); }
 
   /* hero */
@@ -182,12 +207,45 @@ const PAYLOAD = __PAYLOAD__;
     ["期望 vs 匹配中位", salaryGap.delta_pct == null ? "—" : (salaryGap.delta_pct > 0 ? "+" : "") + salaryGap.delta_pct + "%", fmt(salaryGap.expected_mid, "K") + " vs " + fmt(salaryGap.matched_median, "K")],
     ["冲/稳/保", (stats.band_counts && (stats.band_counts["冲"] + " / " + stats.band_counts["稳"] + " / " + stats.band_counts["保"])) || "—", "≥75 / 60–74 / 45–59"]
   ];
+  const rec = M.recommendation || {};
+  if (rec.status) kpis.push(["推荐岗位", (rec.counts || {}).recommended || 0, "薪资与通勤符合"]);
   $("#statCards").innerHTML = kpis.map(function (k) {
     return '<div class="stat"><div class="k">' + esc(k[0]) + '</div><div class="v">' + esc(k[1]) + '</div><div class="h">' + esc(k[2]) + '</div></div>';
   }).join("");
   $("#flags").innerHTML = (salaryGap.delta_pct != null && Math.abs(salaryGap.delta_pct) > 20)
     ? '<div class="note">期望薪资与匹配岗位中位相差 ' + salaryGap.delta_pct + "%，建议参考下方「投递策略」与「简历优化建议」调整。</div>"
     : "";
+
+  /* recommendation banner */
+  (function renderRecommendation() {
+    const el = $("#recBanner");
+    const rec = M.recommendation || {};
+    if (!el || !rec.status) return;
+    const c = rec.counts || {};
+    const cls = rec.status === "ok" ? "ok" : (rec.status === "partial" ? "partial" : "insufficient");
+    let title;
+    if (rec.status === "ok") {
+      title = "推荐结论：找到 " + (c.recommended || 0) + " 个符合预期的岗位";
+    } else if (rec.status === "partial") {
+      title = "推荐结论：部分匹配 — " + (c.recommended || 0) + " 个推荐、" + (c.consider || 0) + " 个可考虑" +
+        (c.pending ? "、" + c.pending + " 个通勤待核实" : "");
+    } else {
+      title = "推荐结论：没有找到符合预期的岗位";
+    }
+    let html = "<b>" + esc(title) + "</b>";
+    if (rec.status !== "ok") {
+      if (rec.reason) html += '<div style="margin-top:6px">' + esc(rec.reason) + '</div>';
+      const alts = rec.alternatives || [];
+      if (alts.length) {
+        html += '<div style="margin-top:8px;font-weight:600">可行的调整：</div><ul>' +
+          alts.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul>";
+      }
+      if (rec.status === "insufficient") {
+        html += '<div style="margin-top:6px;font-size:12px;opacity:.85">不把明显不匹配的岗位包装成推荐；原始岗位数据保留在 Excel 与岗位报告，标记「不推荐」或「仅供参考」。</div>';
+      }
+    }
+    el.innerHTML = '<div class="rec-banner ' + cls + '">' + html + "</div>";
+  })();
 
   /* gauge */
   chart("chart-gauge", {
@@ -201,7 +259,7 @@ const PAYLOAD = __PAYLOAD__;
       data: [{ value: stats.best || 0 }]
     }]
   });
-  concl("concl-gauge", stats.best_job ? "最佳匹配：<b>" + esc(stats.best_job.title) + "</b> @ " + esc(stats.best_job.company) + "，综合得分 <b>" + stats.best + "</b>。" : "暂无匹配结果。");
+  concl("concl-gauge", stats.best_job ? "最佳匹配：<b>" + esc(stats.best_job.title) + "</b> @ " + esc(stats.best_job.company) + "，综合得分 <b>" + stats.best + "</b>。" + (rec.status === "insufficient" ? "但薪资/通勤不满足期望，本次不作为推荐。" : "") : "暂无匹配结果。");
 
   /* radar */
   chart("chart-radar", {
@@ -234,7 +292,7 @@ const PAYLOAD = __PAYLOAD__;
     }]
   });
   const top60 = top.filter(function (x) { return x.score >= 60; }).length;
-  concl("concl-top", "前 10 个岗位中有 <b>" + top60 + "</b> 个匹配分 ≥60；优先投递深绿色（≥75）与橙色（60–74）岗位。");
+  concl("concl-top", "前 10 个岗位中有 <b>" + top60 + "</b> 个匹配分 ≥60；高分岗可以尝试冲刺，60–74 分作为主力。");
 
   /* scatter */
   chart("chart-scatter", {
@@ -267,7 +325,7 @@ const PAYLOAD = __PAYLOAD__;
       label: { fontSize: 10.5 }, itemStyle: { borderColor: "#fff", borderWidth: 2 }
     }]
   });
-  concl("concl-bands", "冲 " + (bandCounts["冲"] || 0) + " 个 / 稳 " + (bandCounts["稳"] || 0) + " 个 / 保 " + (bandCounts["保"] || 0) + " 个；先集中投递冲与稳，保留 1–2 个保底。");
+  concl("concl-bands", "冲 " + (bandCounts["冲"] || 0) + " 个 / 稳 " + (bandCounts["稳"] || 0) + " 个 / 保 " + (bandCounts["保"] || 0) + " 个；主力放在稳，冲可以试，保留 1–2 个练手。");
 
   /* gaps */
   const gapRows = gaps.slice(0, 12);
@@ -283,14 +341,17 @@ const PAYLOAD = __PAYLOAD__;
   /* bands */
   const bandWrap = $("#bandWrap");
   const bandMeta = [
-    ["冲", "#059669", "高匹配，优先投递"],
+    ["冲", "#059669", "仍需打磨，可以尝试"],
     ["稳", "#d97706", "匹配良好，作为主力"],
-    ["保", "#64748b", "有一定差距，保底投递"]
+    ["保", "#64748b", "匹配度不高，可以练手"]
   ];
   bandWrap.innerHTML = bandMeta.map(function (meta) {
     const list = bands[meta[0]] || [];
     return '<div class="band"><h3><span class="dot" style="background:' + meta[1] + '"></span>' + meta[0] + ' <span class="badge" style="font-size:11px;color:#6b7280">' + meta[2] + '</span></h3>' +
-      (list.length ? "<ul>" + list.map(function (x) { return "<li>" + esc(x.title) + " @ " + esc(x.company) + " <span style='color:#6b7280'>(" + x.score + ")</span></li>"; }).join("") + "</ul>" : '<div class="empty">暂无岗位</div>') +
+      (list.length ? "<ul>" + list.map(function (x) {
+        return "<li>" + esc(x.title) + " @ " + esc(x.company) +
+          " <span style='color:#6b7280'>(" + x.score + ")</span>" + jumpButton(x.url) + "</li>";
+      }).join("") + "</ul>" : '<div class="empty">暂无岗位</div>') +
       "</div>";
   }).join("");
 
@@ -307,11 +368,14 @@ const PAYLOAD = __PAYLOAD__;
       "<td>" + esc(x.city) + "</td>" +
       '<td class="num">' + fmt(x.salary_mid_k, "K") + "</td>" +
       '<td class="num">' + scorePill(x.score) + "</td>" +
+      "<td>" + esc((x.commute && x.commute.label) || "—") + "</td>" +
+      "<td>" + recPill(x.recommendation, x.recommendation_reason) + "</td>" +
       "<td>" + matched + "</td>" +
       "<td>" + missing + "</td>" +
-      '<td title="' + esc(reasons) + '">' + esc((x.reasons || [])[0] || "—") + (x.url ? ' <a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">查看</a>' : "") + "</td>" +
+      '<td title="' + esc(reasons) + '">' + esc((x.reasons || [])[0] || "—") + "</td>" +
+      '<td class="jump-cell">' + jumpButton(x.url) + "</td>" +
       "</tr>";
-  }).join("") || '<tr><td colspan="9"><div class="empty">暂无匹配结果</div></td></tr>';
+  }).join("") || '<tr><td colspan="12"><div class="empty">暂无匹配结果</div></td></tr>';
 
   /* suggestions */
   $("#suggestionList").innerHTML = (M.suggestions || []).map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") || '<li class="empty">暂无建议</li>';
@@ -322,6 +386,8 @@ const PAYLOAD = __PAYLOAD__;
     "技能覆盖 = 岗位要求的技能中，简历已具备的比例；缺失技能用于简历优化建议。\n" +
     "经验契合：满足岗位经验区间满分；略低于下限降档；差距较大大幅降档。\n" +
     "薪资契合：岗位月薪中位与期望月薪中值的相对偏差。\n" +
+    "通勤：启用时按地图工具返回的最短方式时长，超出上限越多扣分越多（5–20 分）；未计算则标「待核实」。\n" +
+    "推荐结论：薪资与通勤都在容忍范围内为「推荐」；轻微偏差为「可考虑」；明显低于期望或超出通勤为「不推荐」，不硬凑。\n" +
     "投递分档为启发式：冲 ≥75、稳 60–74、保 45–59、<45 不推荐；请结合公司背调与个人偏好调整。";
   $("#complianceWrap").textContent = P.compliance || "本报告为个人求职参考，请结合多方信息独立判断。";
   $("#footer").textContent = "CareeSeek · 简历 × 岗位匹配 · 数据快照于 " + ((P.meta && P.meta.generated_at) || "");

@@ -88,4 +88,11 @@ python scripts/ingest.py --run <run> --pages-done 3
 - 页面打不开 / 反复报错 → 换下一个候选工具。
 - 命中登录墙 → 进入登录流程（playbook §2）。
 - 命中验证码 → 立即暂停并请用户手动处理（playbook §6），**不得尝试自动绕过**。
-- 所有候选都不可用 → 终止并输出可操作的安装/配置建议。
+- 所有候选都不可用 → 终止自动采集，并给用户两个可执行选项：
+  1. **安装/启用任一浏览器工具**：ego-browser / ego lite、Claude-in-Chrome、Playwright MCP（如 `npx @playwright/mcp@latest`，优先有头模式）、tabbit。装好后重跑探测。
+  2. **改用已有数据**：如果用户手上有调研工作簿，运行
+     ```bash
+     python scripts/import_xlsx.py --run <run> --xlsx "<path>"
+     ```
+     跳过浏览器采集，直接做归一化、分析、报告与简历匹配。
+- **不要**用 `requests` / `curl` 直接抓 Boss 直聘：没有登录态、容易触发风控，也违反平台条款。没有浏览器就是没有自动采集能力，要如实告诉用户。

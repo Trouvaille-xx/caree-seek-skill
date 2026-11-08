@@ -1,49 +1,65 @@
 {
   "name": "CareeSeek",
   "tagline": {
-    "zh": { "pre": "市场定义区间，简历定义", "hl": "匹配", "post": "。" },
-    "en": { "pre": "The market sets the range. Your résumé sets the ", "hl": "fit", "post": "." }
+    "zh": { "pre": "市场定义区间，能力决定", "hl": "落点", "post": "。" },
+    "en": { "pre": "The market sets the range. Your skills set your ", "hl": "place", "post": "." }
   },
   "capabilities": [
     {
       "icon": "radar",
       "title": { "zh": "意向驱动检索", "en": "Intent-first search" },
       "desc": {
-        "zh": "先问城市、年限、岗位、行业、薪资，都能跳过。",
-        "en": "Ask city, level, role, pay — skip anything."
+        "zh": "城市、年限、岗位、薪资、补充要求，都能跳过。",
+        "en": "City, level, role, pay, commute — skip anything."
+      }
+    },
+    {
+      "icon": "search",
+      "title": { "zh": "公司调研与背调", "en": "Company research" },
+      "desc": {
+        "zh": "融资、领域、企业人数、集中度，附老板/团队评分。",
+        "en": "Funding, field, headcount, team score."
       }
     },
     {
       "icon": "chart",
-      "title": { "zh": "月薪与阶梯", "en": "Pay & ladders" },
+      "title": { "zh": "能力与薪资", "en": "Skills & pay" },
       "desc": {
-        "zh": "P25/中位/P75、折算月薪、四种阶梯。",
-        "en": "P25/median/P75, four ladder views — charts first."
+        "zh": "月薪/折算年薪、技能投资象限、组合与词云。",
+        "en": "Pay, skill quadrant, combos, word cloud."
       }
     },
     {
       "icon": "doc",
       "title": { "zh": "简历匹配", "en": "Resume match" },
       "desc": {
-        "zh": "读 PDF/Word，出排序、差距、优化建议与冲稳保。",
-        "en": "Read PDF/Word; rank jobs, show gaps and fixes."
-      }
-    },
-    {
-      "icon": "search",
-      "title": { "zh": "公司背调", "en": "Company check" },
-      "desc": {
-        "zh": "公开信息查创始人、融资、风险，标注置信度。",
-        "en": "Founder, funding, risk — confidence marked."
+        "zh": "读 PDF/Word，如实推荐，岗位一键跳转。",
+        "en": "Rank jobs honestly; one-click to each role."
       }
     }
   ],
   "flow": {
     "nodes": [
       { "zh": "访谈意向", "en": "set intent" },
-      { "zh": "检索岗位", "en": "scan jobs" },
-      { "zh": "出三份报告", "en": "three reports" }
+      { "zh": "检索与调研", "en": "scan & research" },
+      { "zh": "综合报告", "en": "report suite" }
     ]
+  },
+  "usage": {
+    "zh": {
+      "install": "发给你的任意一个 agent：",
+      "examples": [
+        "请你阅读 https://github.com/Trouvaille-xx/caree-seek-skill",
+        "安装这个 skill，并告诉我如何开始第一次使用。"
+      ]
+    },
+    "en": {
+      "install": "Send this to any agent:",
+      "examples": [
+        "Read https://github.com/Trouvaille-xx/caree-seek-skill",
+        "Install this skill and tell me how to start my first run."
+      ]
+    }
   },
   "quickstart": "python scripts/preflight.py",
   "url": "github.com/Trouvaille-xx/caree-seek-skill",

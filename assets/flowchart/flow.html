@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1600, initial-scale=1">
+<title>CareeSeek · 流程图</title>
+<style>
+  @font-face { font-family: 'WenKai'; src: url('fonts/LXGWWenKai-Regular.subset.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'WenKai'; src: url('fonts/LXGWWenKai-Medium.subset.woff2') format('woff2'); font-weight: 500; }
+  @font-face { font-family: 'Caveat'; src: url('fonts/Caveat-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'Caveat'; src: url('fonts/Caveat-Bold.ttf') format('truetype'); font-weight: 700; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1600px; height: 960px; overflow: hidden; }
+  body {
+    font-family: 'WenKai', 'Microsoft YaHei', sans-serif;
+    color: #1f2937;
+    background: #f6efe2;
+  }
+  .canvas {
+    position: relative;
+    width: 1600px;
+    height: 960px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 62% 52% at 14% 8%, rgba(255,255,255,0.92), rgba(255,255,255,0) 70%),
+      radial-gradient(ellipse 55% 48% at 88% 92%, rgba(242,193,78,0.20), rgba(242,193,78,0) 72%),
+      #f6efe2;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(31,41,55,0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(31,41,55,0.055) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 82% 76% at 50% 46%, rgba(0,0,0,0.52), rgba(0,0,0,0) 80%);
+    -webkit-mask-image: radial-gradient(ellipse 82% 76% at 50% 46%, rgba(0,0,0,0.52), rgba(0,0,0,0) 80%);
+  }
+  .grain {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.035; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 240px rgba(61,45,20,0.14); pointer-events: none; }
+
+  header { position: absolute; left: 70px; top: 44px; z-index: 3; }
+  .kicker {
+    font-family: 'Caveat', cursive;
+    font-size: 24px;
+    letter-spacing: 0.08em;
+    color: #8a7c62;
+  }
+  h1 {
+    position: relative;
+    margin: 6px 0 0;
+    font-size: 54px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    color: #182230;
+    display: inline-block;
+  }
+  .swipe {
+    position: absolute;
+    left: 268px; bottom: 9px;
+    width: 230px; height: 22px;
+    background: rgba(242,193,78,0.62);
+    transform: rotate(-1.2deg);
+    z-index: -1;
+    border-radius: 3px;
+  }
+  .sub {
+    margin-top: 16px;
+    font-size: 23px;
+    color: #4b5563;
+    line-height: 1.5;
+    max-width: 760px;
+  }
+  .sub b { font-weight: 500; color: #1f2937; }
+  .stamp {
+    position: absolute;
+    right: 74px; top: 66px;
+    padding: 10px 18px;
+    border: 2px solid #c2410c;
+    border-radius: 14px 10px 16px 9px;
+    color: #c2410c;
+    font-family: 'Caveat', cursive;
+    font-size: 25px;
+    letter-spacing: 0.04em;
+    transform: rotate(2.2deg);
+    opacity: 0.86;
+    background: rgba(255,255,255,0.32);
+  }
+
+  .connectors { position: absolute; left: 0; top: 0; width: 1600px; height: 960px; z-index: 1; }
+
+  .node {
+    position: absolute;
+    top: 250px;
+    width: 220px;
+    height: 300px;
+    padding: 16px 18px 14px;
+    z-index: 2;
+    border-radius: 20px 24px 18px 26px;
+    box-shadow: 0 10px 26px rgba(70,52,20,0.12);
+  }
+  .node .sketch {
+    position: absolute; inset: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .node .content { position: relative; z-index: 1; height: 100%; }
+  .node .top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .badge {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #fffaf0;
+    border: 2px solid #1f2937;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Caveat', cursive;
+    font-size: 19px; font-weight: 700;
+    transform: rotate(-4deg);
+  }
+  .node h2 { margin: 8px 0 0; font-size: 21px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.18; }
+  .node .en {
+    margin-top: 2px;
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: #8a7c62;
+    letter-spacing: 0.05em;
+  }
+  .node ul { margin: 15px 0 0; padding: 0; list-style: none; }
+  .node li {
+    position: relative;
+    padding-left: 17px;
+    margin: 7px 0;
+    font-size: 15px;
+    line-height: 1.42;
+    color: #374151;
+  }
+  .node li::before {
+    content: '';
+    position: absolute; left: 1px; top: 10px;
+    width: 7px; height: 2px;
+    background: #1f2937;
+    transform: rotate(-3deg);
+  }
+  .node .note {
+    position: absolute; left: 18px; right: 18px; bottom: 12px;
+    font-family: 'Caveat', cursive;
+    font-size: 14.5px;
+    color: #8a7c62;
+    line-height: 1.3;
+  }
+  .hl { background: linear-gradient(transparent 58%, rgba(242,193,78,0.52) 58%); padding: 0 2px; }
+  .optional {
+    position: absolute; right: 10px; top: 10px;
+    font-family: 'Caveat', cursive;
+    font-size: 14px;
+    color: #b91c1c;
+    border: 1.5px solid #dc2626;
+    border-radius: 999px;
+    padding: 1px 10px;
+    transform: rotate(3deg);
+    background: rgba(255,255,255,0.45);
+  }
+  .dash-label {
+    font-family: 'Caveat', cursive;
+    font-size: 20px;
+    fill: #7c6f58;
+  }
+
+  .sticky {
+    position: absolute;
+    top: 646px;
+    width: 350px;
+    height: 150px;
+    padding: 22px 24px;
+    border-radius: 4px 10px 6px 12px;
+    box-shadow: 0 9px 20px rgba(70,52,20,0.13);
+    z-index: 2;
+  }
+  .sticky::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: -10px;
+    width: 110px; height: 22px;
+    transform: translateX(-50%) rotate(-2deg);
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(31,41,55,0.08);
+  }
+  .sticky h3 { margin: 0; font-size: 23px; font-weight: 500; }
+  .sticky p { margin: 9px 0 0; font-size: 15.5px; color: #4b5563; line-height: 1.5; }
+
+  footer {
+    position: absolute;
+    left: 70px; right: 70px; bottom: 30px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: 'Caveat', cursive;
+    font-size: 19px;
+    color: #8a7c62;
+    z-index: 3;
+  }
+  footer .url { color: #2563eb; }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <filter id="wobble" x="-8%" y="-8%" width="116%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="11" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+        <path d="M 0 0 L 11 6 L 0 12" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrow-dash" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+        <path d="M 0 0 L 11 6 L 0 12" fill="none" stroke="#8a7c62" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <div class="grid"></div>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+
+  <header>
+    <div class="kicker">CAREESEEK · WHAT IT DOES</div>
+    <h1>CareeSeek <span class="swipe"></span>会做什么</h1>
+    <div class="sub">从<b>一句求职意向</b>，到<b>三份能拿去决策的报告</b>。<br>你不用先学会做市场研究——你只要告诉它：你在找什么。</div>
+  </header>
+  <div class="stamp">INTENT → DECISION</div>
+
+  <svg class="connectors" viewBox="0 0 1600 960">
+    <path d="M 290 400 C 300 394, 306 406, 316 400" fill="none" stroke="#1f2937" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow)" filter="url(#wobble)"/>
+    <path d="M 536 400 C 546 394, 552 406, 562 400" fill="none" stroke="#1f2937" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow)" filter="url(#wobble)"/>
+    <path d="M 782 400 C 792 394, 798 406, 808 400" fill="none" stroke="#1f2937" stroke-width="3.2" stroke-linecap="round" marker-end="url(#arrow)" filter="url(#wobble)"/>
+    <path d="M 1028 400 C 1038 394, 1044 406, 1054 400" fill="none" stroke="#8a7c62" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 7" marker-end="url(#arrow-dash)" filter="url(#wobble)"/>
+    <path d="M 1274 400 C 1284 394, 1290 406, 1300 400" fill="none" stroke="#8a7c62" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 7" marker-end="url(#arrow-dash)" filter="url(#wobble)"/>
+    <path d="M 918 332 C 1010 190, 1320 190, 1410 332" fill="none" stroke="#1f2937" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)" filter="url(#wobble)"/>
+    <text x="1164" y="198" text-anchor="middle" class="dash-label">没简历：直接出报告</text>
+  </svg>
+
+  <div class="node" style="left:70px; top:250px; background:#fdf3d7; transform:rotate(-0.7deg)">
+    <svg class="sketch" viewBox="0 0 224 304" preserveAspectRatio="none">
+      <rect x="3" y="3" width="218" height="298" rx="22" fill="none" stroke="#1f2937" stroke-width="2.4" filter="url(#wobble)"/>
+    </svg>
+    <div class="content">
+      <div class="top"><div class="badge">01</div>
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 10h22v16H18l-6 5v-5H8z"/><path d="M19 16c.5-2 4-2.5 4.5 0 .4 2-2.5 2.2-2.5 4"/><circle cx="21" cy="23.5" r="0.6" fill="#1f2937"/>
+        </svg></div>
+      <h2>意向访谈</h2><div class="en">INTENT</div>
+      <ul><li>城市 · 年限 · 岗位</li><li>行业 · 薪资 · 通勤</li><li>偏好 · 补充要求</li></ul>
+      <div class="note">需求越准确，检索越精准。</div>
+    </div>
+  </div>
+
+  <div class="node" style="left:316px; top:250px; background:#e8f0fe; transform:rotate(0.45deg)">
+    <svg class="sketch" viewBox="0 0 224 304" preserveAspectRatio="none">
+      <rect x="3" y="3" width="218" height="298" rx="22" fill="none" stroke="#1f2937" stroke-width="2.4" filter="url(#wobble)"/>
+    </svg>
+    <div class="content">
+      <div class="top"><div class="badge">02</div>
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="8" width="32" height="24" rx="3"/><path d="M6 14h32"/><circle cx="27" cy="25" r="6"/><path d="M31.5 29.5L36 34"/>
+        </svg></div>
+      <h2>浏览器检索</h2><div class="en">SEARCH</div>
+      <ul><li>Boss直聘等主流平台</li><li>复用登录态</li><li><span class="hl">100+ 家企业</span>岗位匹配</li></ul>
+      <div class="note">登录态复用 · 断点续跑。</div>
+    </div>
+  </div>
+
+  <div class="node" style="left:562px; top:250px; background:#e6f4f1; transform:rotate(-0.35deg)">
+    <svg class="sketch" viewBox="0 0 224 304" preserveAspectRatio="none">
+      <rect x="3" y="3" width="218" height="298" rx="22" fill="none" stroke="#1f2937" stroke-width="2.4" filter="url(#wobble)"/>
+    </svg>
+    <div class="content">
+      <div class="top"><div class="badge">03</div>
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 34V22M18 34V14M27 34V25M36 34V10"/><path d="M7 36h30"/>
+        </svg></div>
+      <h2>市场分析</h2><div class="en">MARKET</div>
+      <ul><li>薪资 · 市场 · 企业</li><li>创始人 · 能力要求</li><li>匹配度 · 推荐</li></ul>
+      <div class="note">把岗位流变成判断依据。</div>
+    </div>
+  </div>
+
+  <div class="node" style="left:808px; top:250px; background:#f3ead8; transform:rotate(0.35deg)">
+    <svg class="sketch" viewBox="0 0 224 304" preserveAspectRatio="none">
+      <rect x="3" y="3" width="218" height="298" rx="22" fill="none" stroke="#1f2937" stroke-width="2.4" filter="url(#wobble)"/>
+    </svg>
+    <div class="content">
+      <div class="top"><div class="badge">04</div>
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="12" width="18" height="22" rx="2"/><path d="M12 18h2M18 18h2M12 23h2M18 23h2M12 28h2M18 28h2"/><circle cx="31" cy="27" r="6"/><path d="M35.5 31.5L39 35"/>
+        </svg></div>
+      <h2>企业与创始人背调</h2><div class="en">DUE DILIGENCE</div>
+      <ul><li>创始人 / 融资 / 风险</li><li>规模 · 新闻 · 评分</li><li>置信度 · 同名消歧</li></ul>
+      <div class="note">查不到，也是信号。</div>
+    </div>
+  </div>
+
+  <div class="node" style="left:1054px; top:250px; background:#fde8e8; transform:rotate(0.6deg)">
+    <svg class="sketch" viewBox="0 0 224 304" preserveAspectRatio="none">
+      <rect x="3" y="3" width="218" height="298" rx="22" fill="none" stroke="#8a7c62" stroke-width="2.3" stroke-dasharray="9 7" filter="url(#wobble)"/>
+    </svg>
+    <div class="content">
+      <div class="optional">可选</div>
+      <div class="top"><div class="badge">05</div>
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 6h18l7 7v25H10z"/><path d="M28 6v8h7"/><path d="M16 24l4 4 8-9"/>
+        </svg></div>
+      <h2>简历匹配</h2><div class="en">MATCH</div>
+      <ul><li>读 PDF / Word</li><li>匹配排序 · 如实推荐</li><li>冲稳保 · 一键跳转</li></ul>
+      <div class="note">你的简历，能投哪些岗位？</div>
+    </div>
+  </div>
+
+  <div class="node" style="left:1300px; top:250px; background:#e9f5e5; transform:rotate(-0.5deg)">
+    <svg class="sketch" viewBox="0 0 224 304" preserveAspectRatio="none">
+      <rect x="3" y="3" width="218" height="298" rx="22" fill="none" stroke="#1f2937" stroke-width="2.4" filter="url(#wobble)"/>
+    </svg>
+    <div class="content">
+      <div class="top"><div class="badge">06</div>
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none" stroke="#1f2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="12" width="23" height="17" rx="3"/><path d="M12 8h23v17"/><path d="M15 35h22V18"/>
+        </svg></div>
+      <h2>综合交付</h2><div class="en">DELIVERY</div>
+      <ul><li>汇总 Excel</li><li>岗位 seek 报告</li><li>简历匹配报告</li></ul>
+      <div class="note">表格、报告、建议，一次交付。</div>
+    </div>
+  </div>
+
+  <div class="sticky" style="left:55px; background:#fff3c4; transform:rotate(-1deg)">
+    <h3>刷岗位太累</h3>
+    <p>上百个岗位先替你看一遍，薪资、通勤、能力要求一次拉齐。</p>
+  </div>
+  <div class="sticky" style="left:435px; background:#e8f0fe; transform:rotate(0.7deg)">
+    <h3>海投没回音</h3>
+    <p>按匹配度排序，先投值得的，把简历用在刀刃上。</p>
+  </div>
+  <div class="sticky" style="left:815px; background:#e6f4f1; transform:rotate(-0.8deg)">
+    <h3>公司底细难查</h3>
+    <p>融资、规模、老板与团队背景，公开信息一次看清。</p>
+  </div>
+  <div class="sticky" style="left:1195px; background:#e9f5e5; transform:rotate(0.9deg)">
+    <h3>不知道市场要什么能力</h3>
+    <p>能力要求与薪资溢价一次看清，知道先补哪一块。</p>
+  </div>
+
+  <footer>
+    <span>CareeSeek · 求职市场情报 skill</span>
+    <span class="url">github.com/Trouvaille-xx/caree-seek-skill</span>
+  </footer>
+</div>
+</body>
+</html>

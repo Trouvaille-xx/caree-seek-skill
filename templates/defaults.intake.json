@@ -9,6 +9,13 @@
     "months": 12
   },
   "company_size_pref": [],
+  "supplementary_requirements": "",
+  "commute": {
+    "enabled": false,
+    "home_address": "",
+    "modes": [],
+    "max_minutes": null
+  },
   "ladder_modes": ["same_company", "salary_curve"],
   "bg_scope": "top_n",
   "top_n": 5,

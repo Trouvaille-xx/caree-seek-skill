@@ -18,6 +18,19 @@
       }
     },
     "company_size_pref": { "type": "array", "items": { "type": "string" } },
+    "supplementary_requirements": { "type": "string" },
+    "commute": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "home_address": { "type": "string" },
+        "modes": {
+          "type": "array",
+          "items": { "enum": ["transit", "driving", "walking", "cycling"] }
+        },
+        "max_minutes": { "type": ["integer", "null"], "minimum": 1, "maximum": 180 }
+      }
+    },
     "ladder_modes": {
       "type": "array",
       "items": { "enum": ["same_company", "cross_company", "capability_map", "salary_curve"] }

@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import caree_common as c  # noqa: E402
 import normalize as nz  # noqa: E402
+import analyze as an  # noqa: E402
 
 CITY_LIST = ["北京", "上海", "广州", "深圳", "杭州", "成都", "南京", "武汉", "西安", "苏州", "天津"]
 EDU_RANK = {"博士": 4, "硕士": 3, "本科": 2, "大专": 1, "不限": 0, "": 0}
@@ -175,6 +176,24 @@ def score_job(job, profile, matcher):
     }
 
 
+def commute_penalty(job, commute, commute_idx):
+    """通勤惩罚：只在用户启用通勤且该岗位已计算时生效。"""
+    if not commute.get("enabled"):
+        return 0.0, ""
+    info = commute_idx.get(job.get("job_id"))
+    if not info:
+        return 0.0, "通勤未计算"
+    minutes = float(info.get("minutes") or 0)
+    limit = float(commute.get("max_minutes") or 60)
+    if minutes <= limit:
+        return 0.0, ""
+    if minutes <= limit * 1.2 + 10:
+        return 5.0, "通勤略超"
+    if minutes <= limit * 1.5:
+        return 10.0, "通勤偏远"
+    return 20.0, "通勤明显超出上限"
+
+
 def main():
     ap = argparse.ArgumentParser(description="简历 × 岗位匹配")
     ap.add_argument("--run", help="run 目录（缺省使用最新）")
@@ -198,7 +217,38 @@ def main():
     matcher = nz.build_matcher()
     profile = build_profile(resume, matcher)
 
-    ranked = sorted((score_job(job, profile, matcher) for job in jobs), key=lambda x: -x["score"])
+    cfg = c.read_json(run / "config.json", {}) or {}
+    commute = an.load_commute(run, cfg)
+    commute_idx = an.commute_index(jobs, commute)
+    commute_sum = an.commute_summary(jobs, commute)
+    rec_cfg = dict(cfg)
+    if not ((rec_cfg.get("salary_expect") or {}).get("min_k")):
+        rec_cfg["salary_expect"] = profile.get("expected_salary") or {}
+    recommendation = an.recommendation_summary(jobs, rec_cfg, commute)
+
+    def enrich(job):
+        item = score_job(job, profile, matcher)
+        penalty, penalty_note = commute_penalty(job, commute, commute_idx)
+        item["base_score"] = item["score"]
+        item["commute_penalty"] = penalty
+        item["score"] = round(max(0.0, item["score"] - penalty), 1)
+        info = commute_idx.get(job["job_id"])
+        item["commute"] = {
+            "label": info["label"] if info else ("未计算" if commute.get("enabled") else "未启用"),
+            "minutes": info["minutes"] if info else None,
+            "mode": info["mode"] if info else "",
+            "within_max": info["within_max"] if info else None,
+            "penalty": penalty,
+            "note": penalty_note,
+        }
+        rec = recommendation["labels"].get(job["job_id"]) or {}
+        item["recommendation"] = rec.get("label") or "待核实"
+        item["recommendation_reason"] = rec.get("reason") or ""
+        if penalty_note and penalty_note not in item["reasons"]:
+            item["reasons"].append(penalty_note)
+        return item
+
+    ranked = sorted((enrich(job) for job in jobs), key=lambda x: -x["score"])
     scores = [x["score"] for x in ranked]
     best = ranked[0] if ranked else None
     top20 = ranked[:20]
@@ -221,12 +271,19 @@ def main():
         "candidate": [100 if s in set(profile.get("skills") or []) else 0 for s in radar_skills],
     }
 
+    def band_item(x):
+        return {
+            "job_id": x["job_id"], "title": x["title"], "company": x["company"],
+            "score": x["score"], "url": x.get("url", ""),
+            "recommendation": x.get("recommendation", ""),
+        }
+
     def band(lo, hi):
         return [x for x in ranked if lo <= x["score"] < hi]
     bands = {
-        "冲": [{"title": x["title"], "company": x["company"], "score": x["score"]} for x in band(75, 101)[:10]],
-        "稳": [{"title": x["title"], "company": x["company"], "score": x["score"]} for x in band(60, 75)[:10]],
-        "保": [{"title": x["title"], "company": x["company"], "score": x["score"]} for x in band(45, 60)[:10]],
+        "冲": [band_item(x) for x in band(75, 101)[:10]],
+        "稳": [band_item(x) for x in band(60, 75)[:10]],
+        "保": [band_item(x) for x in band(45, 60)[:10]],
     }
 
     expect = profile.get("expected_salary") or {}
@@ -278,8 +335,18 @@ def main():
 
     chong = len(band(75, 101))
     if chong:
-        suggestions.append(f"投递节奏：冲档 {chong} 个，先投匹配分最高的 5 个；每投 5 个复盘一次反馈，再调整简历。")
+        suggestions.append(f"投递节奏：可尝试的冲刺岗 {chong} 个，先投匹配分最高的 5 个；每投 5 个复盘一次反馈，再调整简历。")
     suggestions.append("把与 Top 岗位 JD 重合的关键词前置到简历摘要与项目首行，并为每个项目写清「背景-动作-结果」与量化指标。")
+
+    if recommendation["status"] == "insufficient":
+        suggestions.insert(0, "结论：本次没有找到符合期望的岗位，不强行推荐。" +
+                           (recommendation["insufficient_reason"] or ""))
+        for alt in recommendation["alternatives"][:3]:
+            suggestions.append("调整建议：" + alt)
+    elif recommendation["status"] == "partial":
+        counts = recommendation["counts"]
+        suggestions.insert(0, f"结论：{counts['recommended']} 个推荐、{counts['consider']} 个可考虑，"
+                               f"{counts['pending']} 个通勤待核实；部分岗位在薪资或通勤上有轻微偏差。")
 
     result = {
         "run_id": run.name,
@@ -299,6 +366,17 @@ def main():
         "radar": radar,
         "bands": bands,
         "salary_gap": salary_gap,
+        "commute": commute_sum,
+        "recommendation": {
+            "status": recommendation["status"],
+            "counts": recommendation["counts"],
+            "reason": recommendation["insufficient_reason"],
+            "alternatives": recommendation["alternatives"],
+            "salary_expected_min": recommendation["salary_expected_min"],
+            "salary_found_top_p50": recommendation["salary_found_top_p50"],
+            "commute_median": recommendation["commute_median"],
+            "commute_max": recommendation["commute_max"],
+        },
         "suggestions": suggestions,
     }
     out = run / "match.json"
@@ -310,6 +388,8 @@ def main():
         "avg": result["stats"]["avg"],
         "bands": result["stats"]["band_counts"],
         "top_gaps": [g["skill"] for g in gaps[:5]],
+        "commute": commute_sum,
+        "recommendation": {"status": recommendation["status"], "counts": recommendation["counts"]},
         "next": "运行 report.py 生成岗位报告与简历匹配报告",
     })
 

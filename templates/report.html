@@ -74,6 +74,18 @@
   .chart-fallback{color:#94a3b8;font-size:13px;padding:20px;text-align:center}
   details summary{cursor:pointer;font-size:13px;color:#374151;font-weight:600;margin-bottom:8px}
   .compliance{white-space:pre-wrap;font-size:12px;color:#6b7280;line-height:1.75}
+  .rec-banner{border-radius:12px;padding:14px 18px;margin:0 0 16px;border:1px solid transparent;font-size:13px;line-height:1.7}
+  .rec-banner.ok{background:#f0fdf4;border-color:#bbf7d0;color:#065f46}
+  .rec-banner.partial{background:#fffbeb;border-color:#fde68a;color:#92400e}
+  .rec-banner.insufficient{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+  .rec-banner b{font-size:15px}
+  .rec-banner ul{margin:6px 0 0;padding-left:20px}
+  .rec-banner li{margin:2px 0}
+  .rec-pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;white-space:nowrap;border:1px solid transparent}
+  .rec-pill.ok{background:#dcfce7;color:#15803d;border-color:#bbf7d0}
+  .rec-pill.consider{background:#fef3c7;color:#b45309;border-color:#fde68a}
+  .rec-pill.pending{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
+  .rec-pill.bad{background:#fee2e2;color:#b91c1c;border-color:#fecaca}
   footer{color:#8b95a5;font-size:11.5px;text-align:center;margin-top:8px}
 </style>
 </head>
@@ -88,6 +100,7 @@
   <section class="section">
     <h2>结论速览</h2>
     <div class="desc">先看结论，再看证据；每个板块都是「图 → 结论 → 明细」</div>
+    <div id="recBanner"></div>
     <div class="cards" id="statCards"></div>
     <div class="pyramid"><ol id="conclusionList"></ol></div>
     <div id="flags" style="margin-top:12px"></div>
@@ -95,37 +108,39 @@
 
   <section class="section">
     <h2>一、薪资结构</h2>
-    <div class="desc">月薪口径（K/月），区间中值代表岗位；折算月薪 = 中值 × 薪数 ÷ 12</div>
+    <div class="desc">月薪口径（K/月）；折算年薪 = 月薪中值 × 薪数，按实际数据范围自适应分箱</div>
     <div class="chart-grid">
       <div class="chart-card"><h3>月薪中值分布</h3><div class="hint">固定 10 箱，纵轴为岗位数</div><div id="chart-hist" class="chart"></div><div class="conclusion" id="concl-hist"></div></div>
       <div class="chart-card"><h3>报价区间模板频次</h3><div class="hint">横条长度 = 薪资区间跨度；标签 = 出现次数</div><div id="chart-tpl" class="chart"></div><div class="conclusion" id="concl-tpl"></div></div>
       <div class="chart-card"><h3>按经验要求的分位数</h3><div class="hint">箱体 P25–P75，中线中位，两端最小/最大</div><div id="chart-exp" class="chart tall"></div><div class="conclusion" id="concl-exp"></div></div>
       <div class="chart-card"><h3>薪数分布</h3><div class="hint">12 薪 vs 13–18 薪</div><div id="chart-months" class="chart"></div><div class="conclusion" id="concl-months"></div></div>
-      <div class="chart-card"><h3>月薪 vs 折算月薪</h3><div class="hint">折算月薪把 N 薪摊回 12 个月</div><div id="chart-annual" class="chart"></div><div class="conclusion" id="concl-annual"></div></div>
+      <div class="chart-card"><h3>折算年薪分布</h3><div class="hint">月薪中值 × 薪数；分箱按实际范围自适应</div><div id="chart-annual" class="chart"></div><div class="conclusion" id="concl-annual"></div></div>
       <div class="chart-card"><h3>薪资区间宽度</h3><div class="hint">宽度越大，用中值代表岗位的误差越大</div><div id="chart-width" class="chart"></div><div class="conclusion" id="concl-width"></div></div>
     </div>
   </section>
 
   <section class="section">
-    <h2>二、分层驱动</h2>
-    <div class="desc">融资阶段、公司规模、区域与招聘量，哪一个真正跟薪资相关</div>
+    <h2>二、市场公司调研</h2>
+    <div class="desc">融资、领域、规模、年龄与招聘集中度：这次遇到的公司长什么样（样本口径，不等于全市场）</div>
     <div class="chart-grid">
-      <div class="chart-card"><h3>融资阶段 × 月薪</h3><div class="hint">箱体 P25–P75，中线中位</div><div id="chart-funding" class="chart tall"></div><div class="conclusion" id="concl-funding"></div></div>
-      <div class="chart-card"><h3>公司规模 × 月薪</h3><div class="hint">柱 = 岗位数，线 = 薪资中位</div><div id="chart-size" class="chart"></div><div class="conclusion" id="concl-size"></div></div>
-      <div class="chart-card"><h3>区域 × 岗位数 / 月薪</h3><div class="hint">柱 = 岗位数，线 = 薪资中位</div><div id="chart-district" class="chart"></div><div class="conclusion" id="concl-district"></div></div>
-      <div class="chart-card"><h3>招聘量 Top 公司</h3><div class="hint">x = 岗位数，y = 薪资中位，气泡大小 = 岗位数</div><div id="chart-companies" class="chart"></div><div class="conclusion" id="concl-companies"></div></div>
-      <div class="chart-card"><h3>是否脱敏 × 月薪</h3><div class="hint">脱敏企业通常是大厂/不愿披露主体</div><div id="chart-desens" class="chart"></div><div class="conclusion" id="concl-desens"></div></div>
+      <div class="chart-card"><h3>融资阶段分布</h3><div class="hint">柱 = 公司数，线 = 岗位月薪中位</div><div id="chart-funding" class="chart"></div><div class="conclusion" id="concl-funding"></div></div>
+      <div class="chart-card"><h3>领域分布</h3><div class="hint">柱 = 公司数，线 = 岗位月薪中位；长尾并入「其他」</div><div id="chart-industry" class="chart"></div><div class="conclusion" id="concl-industry"></div></div>
+      <div class="chart-card"><h3>企业规模分布（人数）</h3><div class="hint">按企业人数分桶；柱 = 公司数，线 = 岗位月薪中位</div><div id="chart-size" class="chart"></div><div class="conclusion" id="concl-size"></div></div>
+      <div class="chart-card"><h3>行业 × 融资阶段</h3><div class="hint">颜色越深 = 公司越多；看哪些领域集中在哪一轮</div><div id="chart-indfund" class="chart tall"></div><div class="conclusion" id="concl-indfund"></div></div>
+      <div class="chart-card"><h3>公司年龄分布</h3><div class="hint">按成立年份分桶；柱 = 公司数，线 = 岗位月薪中位</div><div id="chart-age" class="chart"></div><div class="conclusion" id="concl-age"></div></div>
+      <div class="chart-card"><h3>招聘集中度</h3><div class="hint">Top 10 公司岗位数 + 累计占比</div><div id="chart-concentration" class="chart"></div><div class="conclusion" id="concl-concentration"></div></div>
     </div>
   </section>
 
   <section class="section">
     <h2>三、技能与 JD</h2>
-    <div class="desc">哪些技能是入场券，哪些真正溢价；JD 长度是否预示薪资</div>
+    <div class="desc">哪些能力是入场券、哪些有溢价，哪些组合更值钱——按市场要求决定往哪补</div>
     <div class="chart-grid">
       <div class="chart-card"><h3>技能命中岗位数</h3><div class="hint">Top 15，来自 JD 文本打标</div><div id="chart-skills" class="chart tall"></div><div class="conclusion" id="concl-skills"></div></div>
+      <div class="chart-card"><h3>岗位关键词云</h3><div class="hint">标题 + 技能词；字号 = 出现频次</div><div id="chart-cloud" class="chart tall"></div><div class="conclusion" id="concl-cloud"></div></div>
       <div class="chart-card"><h3>技能薪资溢价</h3><div class="hint">出现该技能的岗位中位 − 整体中位</div><div id="chart-lift" class="chart tall"></div><div class="conclusion" id="concl-lift"></div></div>
-      <div class="chart-card"><h3>岗位标题细分</h3><div class="hint">命中数 + 薪资中位</div><div id="chart-titles" class="chart"></div><div class="conclusion" id="concl-titles"></div></div>
-      <div class="chart-card"><h3>JD 字数分布</h3><div class="hint">字数与薪资几乎无关</div><div id="chart-jd" class="chart"></div><div class="conclusion" id="concl-jd"></div></div>
+      <div class="chart-card"><h3>能力投资象限</h3><div class="hint">x = 岗位覆盖率，y = 薪资溢价；右上优先投入</div><div id="chart-quadrant" class="chart tall"></div><div class="conclusion" id="concl-quadrant"></div></div>
+      <div class="chart-card"><h3>高价值技能组合</h3><div class="hint">Top 10 共现组合；柱 = 岗位数，标签 = 月薪中位</div><div id="chart-combos" class="chart tall"></div><div class="conclusion" id="concl-combos"></div></div>
     </div>
   </section>
 
@@ -134,6 +149,7 @@
     <div class="desc">背调覆盖本身就是风险提示：查不到不等于没问题</div>
     <div class="chart-grid">
       <div class="chart-card"><h3>创始人背调置信度</h3><div class="hint">高 / 中 / 低</div><div id="chart-founders" class="chart"></div><div class="conclusion" id="concl-founders"></div></div>
+      <div class="chart-card"><h3>老板 / 团队背景评分</h3><div class="hint">名企、名校、高管创业、学历与海外经历</div><div id="chart-teamscore" class="chart"></div><div class="conclusion" id="concl-teamscore"></div></div>
     </div>
     <div class="company-grid" id="companyGrid" style="margin-top:16px"></div>
   </section>
@@ -156,11 +172,13 @@
           <th data-key="tier">梯队</th>
           <th data-key="city">城市</th>
           <th data-key="salary" class="num">月薪中位</th>
-          <th data-key="annual" class="num">折算月薪</th>
+          <th data-key="annualWan" class="num">折算年薪</th>
           <th data-key="expText">经验</th>
           <th data-key="education">学历</th>
           <th>技能</th>
           <th data-key="score" class="num">匹配分</th>
+          <th data-key="commuteLabel">通勤</th>
+          <th data-key="recLabel">结论</th>
           <th>背调</th>
           <th>链接</th>
         </tr></thead>
@@ -195,6 +213,10 @@ const PAYLOAD = __PAYLOAD__;
   (A.scores || []).forEach(function (s) { scoreMap[s.job_id] = s.score; });
   const companyIndex = {};
   (A.company_index || []).forEach(function (c) { companyIndex[c.company_key] = c; });
+  const teamScoreMap = {};
+  (A.company_index || []).forEach(function (c) { teamScoreMap[c.company_key] = c.team_score || {}; });
+  const commuteIndex = A.commute_index || {};
+  const recLabels = (A.recommendation && A.recommendation.labels) || {};
   const tierLabel = { tier1: "一线大厂", tier2: "成长型", tier3: "初创小微", unknown: "未标注" };
   const confLabel = { high: "置信度高", med: "置信度中", low: "置信度低", none: "未背调" };
   const modeLabel = { same_company: "同司职级对比", cross_company: "跨司对标", capability_map: "能力技能地图", salary_curve: "薪资曲线" };
@@ -206,6 +228,10 @@ const PAYLOAD = __PAYLOAD__;
     });
   };
   const fmt = function (v, suffix) { return v == null ? "—" : String(v) + (suffix || ""); };
+  const fmtWan = function (v) {
+    if (v == null) return "—";
+    return (Math.round(v / 10 * 10) / 10) + "万";
+  };
   const charts = [];
   function chart(id, option) {
     const el = document.getElementById(id);
@@ -217,6 +243,93 @@ const PAYLOAD = __PAYLOAD__;
   }
   window.addEventListener("resize", function () { charts.forEach(function (c) { c.resize(); }); });
   function concl(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+  /* ---------- word cloud (no extra dependency) ---------- */
+  let cloudEl = null;
+  let cloudItems = [];
+  let cloudResizeTimer = null;
+  function renderCloud(el, items) {
+    if (!el) return;
+    cloudEl = el;
+    cloudItems = (items || []).slice();
+    el.innerHTML = "";
+    if (!cloudItems.length) { el.innerHTML = '<div class="chart-fallback">暂无关键词数据</div>'; return; }
+    const W = el.clientWidth || 520;
+    const H = el.clientHeight || 340;
+    const box = document.createElement("div");
+    box.style.cssText = "position:relative;width:" + W + "px;height:" + H + "px;overflow:hidden";
+    el.appendChild(box);
+
+    cloudItems.sort(function (a, b) { return b.count - a.count; });
+    const counts = cloudItems.map(function (x) { return x.count; });
+    const max = Math.max.apply(null, counts);
+    const min = Math.min.apply(null, counts);
+    const sizeOf = function (c) {
+      const t = max === min ? 1 : (Math.sqrt(c) - Math.sqrt(min)) / (Math.sqrt(max) - Math.sqrt(min));
+      return 11 + 27 * t;
+    };
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const placed = [];
+    const cx = W / 2, cy = H / 2, pad = 3;
+    const palette = ["#1d4ed8", "#0f766e", "#b45309", "#7c3aed", "#be123c",
+                     "#0369a1", "#4d7c0f", "#9333ea", "#c2410c", "#155e75"];
+
+    function hits(r) {
+      if (r.x < 2 || r.y < 2 || r.x + r.w > W - 2 || r.y + r.h > H - 2) return true;
+      for (let i = 0; i < placed.length; i++) {
+        const p = placed[i];
+        if (r.x < p.x + p.w + pad && r.x + r.w + pad > p.x &&
+            r.y < p.y + p.h + pad && r.y + r.h + pad > p.y) return true;
+      }
+      return false;
+    }
+
+    cloudItems.forEach(function (item, idx) {
+      const size = sizeOf(item.count);
+      ctx.font = (size >= 24 ? "700 " : "600 ") + size + "px -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
+      const w = Math.ceil(ctx.measureText(item.text).width) + 2;
+      const h = Math.ceil(size * 1.25);
+      if (w > W - 8) return;
+      let spot = null;
+      const start = idx === 0 ? 0 : idx * 2.39996;
+      for (let a = start; a < start + Math.PI * 22 && !spot; a += 0.22) {
+        const r = 3 + 1.5 * (a - start);
+        const rect = {
+          x: cx + Math.cos(a) * r * 1.35 - w / 2,
+          y: cy + Math.sin(a) * r * 0.82 - h / 2,
+          w: w, h: h
+        };
+        if (!hits(rect)) spot = rect;
+      }
+      if (!spot) {
+        outer:
+        for (let y = 2; y < H - h - 2; y += 6) {
+          for (let x = 2; x < W - w - 2; x += 6) {
+            const rect = { x: x, y: y, w: w, h: h };
+            if (!hits(rect)) { spot = rect; break outer; }
+          }
+        }
+      }
+      if (!spot) return;
+      placed.push(spot);
+      const span = document.createElement("span");
+      span.textContent = item.text;
+      span.title = item.text + "：出现 " + item.count + " 次";
+      span.style.cssText = "position:absolute;left:" + spot.x.toFixed(1) + "px;top:" + spot.y.toFixed(1) +
+        "px;font-size:" + size.toFixed(1) + "px;line-height:" + h + "px;font-weight:" + (size >= 24 ? 700 : 600) +
+        ";color:" + palette[idx % palette.length] + ";white-space:nowrap;cursor:default;transition:opacity .15s";
+      span.addEventListener("mouseenter", function () { span.style.opacity = "0.55"; });
+      span.addEventListener("mouseleave", function () { span.style.opacity = "1"; });
+      box.appendChild(span);
+    });
+    if (!placed.length) el.innerHTML = '<div class="chart-fallback">关键词不足以布局词云</div>';
+  }
+  window.addEventListener("resize", function () {
+    if (!cloudEl) return;
+    clearTimeout(cloudResizeTimer);
+    cloudResizeTimer = setTimeout(function () { renderCloud(cloudEl, cloudItems); }, 160);
+  });
   function boxData(rows) {
     return rows.filter(function (r) { return r.p25 != null; })
       .map(function (r) { return [r.min, r.p25, r.p50, r.p75, r.max]; });
@@ -242,6 +355,8 @@ const PAYLOAD = __PAYLOAD__;
   }
   (cfg.ladder_modes || []).forEach(function (m) { chips.push("阶梯：" + (modeLabel[m] || m)); });
   chips.push("背调：" + ({ top_n: "Top-N 深度", shallow_all: "全量浅度", manual: "手动指定" }[cfg.bg_scope] || cfg.bg_scope || "未设置"));
+  if (A.commute && A.commute.enabled) chips.push("通勤：≤" + A.commute.max_minutes + " 分钟" + (A.commute.tool ? " · " + A.commute.tool : ""));
+  if (cfg.supplementary_requirements) chips.push("补充：" + cfg.supplementary_requirements);
   $("#heroSub").textContent = "run " + ((P.meta && P.meta.run_id) || "") + " · 生成于 " + ((P.meta && P.meta.generated_at) || "") + " · 共 " + (A.n || jobs.length) + " 条岗位";
   $("#heroChips").innerHTML = chips.map(function (c) { return '<span class="chip">' + esc(c) + '</span>'; }).join("");
 
@@ -249,17 +364,51 @@ const PAYLOAD = __PAYLOAD__;
   const overall = (A.salary && A.salary.overall) || {};
   const annualized = (A.salary && A.salary.annualized) || {};
   const widthStats = (A.salary && A.salary.width) || {};
-  const annualPct = overall.p50 && annualized.p50 ? Math.round((annualized.p50 / 12 / overall.p50 - 1) * 1000) / 10 : null;
+  const effMonths = overall.p50 && annualized.p50 ? annualized.p50 / overall.p50 : null;
   const kpis = [
     ["有效薪资样本", overall.n || 0, "条岗位"],
     ["月薪 P25", fmt(overall.p25, "K"), "25 分位"],
     ["月薪中位", fmt(overall.p50, "K"), "50 分位"],
     ["月薪 P75", fmt(overall.p75, "K"), "75 分位"],
-    ["折算月薪中位", fmt(annualized.p50 ? Math.round(annualized.p50 / 12 * 10) / 10 : null, "K"), annualPct == null ? "中值 × 薪数 ÷ 12" : "+" + annualPct + "% vs 月薪"]
+    ["折算年薪中位", fmtWan(annualized.p50), effMonths == null ? "月薪中值 × 薪数" : "≈ 月薪中位 × " + effMonths.toFixed(1) + " 薪"]
   ];
+  const rec = A.recommendation || {};
+  const recCounts = rec.counts || {};
+  if (rec.status) {
+    kpis.push(["推荐岗位", recCounts.recommended || 0, "符合薪资与通勤"]);
+  }
   $("#statCards").innerHTML = kpis.map(function (k) {
     return '<div class="stat"><div class="k">' + esc(k[0]) + '</div><div class="v">' + esc(k[1]) + '</div><div class="h">' + esc(k[2]) + '</div></div>';
   }).join("");
+
+  /* ---------- recommendation banner ---------- */
+  (function renderRecommendation() {
+    const el = $("#recBanner");
+    if (!el || !rec.status) return;
+    const cls = rec.status === "ok" ? "ok" : (rec.status === "partial" ? "partial" : "insufficient");
+    let title;
+    if (rec.status === "ok") {
+      title = "推荐结论：找到 " + (recCounts.recommended || 0) + " 个符合预期的岗位";
+    } else if (rec.status === "partial") {
+      title = "推荐结论：部分匹配 — " + (recCounts.recommended || 0) + " 个推荐、" +
+        (recCounts.consider || 0) + " 个可考虑" + (recCounts.pending ? "、" + recCounts.pending + " 个通勤待核实" : "");
+    } else {
+      title = "推荐结论：没有找到符合预期的岗位";
+    }
+    let html = "<b>" + esc(title) + "</b>";
+    if (rec.status !== "ok") {
+      if (rec.reason) html += '<div style="margin-top:6px">' + esc(rec.reason) + '</div>';
+      const alts = rec.alternatives || [];
+      if (alts.length) {
+        html += '<div style="margin-top:8px;font-weight:600">可行的调整：</div><ul>' +
+          alts.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul>";
+      }
+      if (rec.status === "insufficient") {
+        html += '<div style="margin-top:6px;font-size:12px;opacity:.85">原始岗位数据保留在 Excel 与岗位总表，标记「不推荐」或「仅供参考」，不做删改或伪造。</div>';
+      }
+    }
+    el.innerHTML = '<div class="rec-banner ' + cls + '">' + html + "</div>";
+  })();
 
   const expRows = (A.salary && A.salary.by_experience) || [];
   const exp13 = expRows.find(function (r) { return r.label === "1-3年"; });
@@ -279,7 +428,7 @@ const PAYLOAD = __PAYLOAD__;
   const lowLift = skillsLift[skillsLift.length - 1];
 
   const conclusions = [];
-  if (overall.p50 != null) conclusions.push("月薪中位 <b>" + overall.p50 + "K</b>，P25–P75 为 <b>" + fmt(overall.p25) + "–" + fmt(overall.p75) + "K</b>；折算月薪中位 <b>" + fmt(annualized.p50 ? Math.round(annualized.p50 / 12 * 10) / 10 : null) + "K</b>" + (annualPct != null ? "（+" + annualPct + "%）" : "") + "。谈薪要同时看 N 薪。");
+  if (overall.p50 != null) conclusions.push("月薪中位 <b>" + overall.p50 + "K</b>，P25–P75 为 <b>" + fmt(overall.p25) + "–" + fmt(overall.p75) + "K</b>；折算年薪中位 <b>" + fmtWan(annualized.p50) + "</b>" + (effMonths != null ? "（≈ " + effMonths.toFixed(1) + " 薪）" : "") + "。谈薪要同时看 N 薪。");
   if (exp13 && expUnl) conclusions.push("严格 1–3 年中位 <b>" + exp13.p50 + "K</b>，但「经验不限」中位 <b>" + expUnl.p50 + "K</b>；大厂常用「经验不限」挂中高级岗，只按年限估算会低估上限。");
   if (topBin) conclusions.push("薪资双峰：<b>" + topBin.label + "</b> 最多（" + topBin.count + " 个），25–30K 仅 " + (valley ? valley.count : 0) + " 个；凹陷来自报价模板间隙，不是市场真空。");
   if (lowSalary.length) conclusions.push("月薪低于 15K 的 <b>" + lowSalary.length + "</b> 个岗位中，<b>" + lowSmall + "</b> 个来自 100 人以下团队。");
@@ -341,18 +490,22 @@ const PAYLOAD = __PAYLOAD__;
   const totalMonths = monthsRows.reduce(function (s, d) { return s + d.count; }, 0);
   concl("concl-months", totalMonths ? "有 <b>" + over12 + "</b> 个岗位（" + Math.round(over12 / totalMonths * 1000) / 10 + "%）超过 12 薪；只看月薪会系统性低估实际回报。" : "暂无薪数数据。");
 
+  const annualHist = (A.salary && A.salary.annual_histogram) || [];
+  const topAnnualBin = annualHist.slice().sort(function (a, b) { return b.count - a.count; })[0];
   chart("chart-annual", {
-    tooltip: { trigger: "axis", valueFormatter: function (v) { return v + "K"; } },
-    legend: { top: 0, textStyle: { fontSize: 11 } },
-    grid: { left: 44, right: 16, top: 34, bottom: 30 },
-    xAxis: { type: "category", data: ["P25", "中位", "P75"] },
-    yAxis: { type: "value", name: "K/月" },
-    series: [
-      { name: "月薪", type: "bar", data: [overall.p25, overall.p50, overall.p75], itemStyle: { color: "#93c5fd", borderRadius: [4, 4, 0, 0] }, label: { show: true, position: "top", fontSize: 10.5 } },
-      { name: "折算月薪", type: "bar", data: [annualized.p25, annualized.p50, annualized.p75].map(function (v) { return v == null ? null : Math.round(v / 12 * 10) / 10; }), itemStyle: { color: "#2563eb", borderRadius: [4, 4, 0, 0] }, label: { show: true, position: "top", fontSize: 10.5 } }
-    ]
+    tooltip: { trigger: "axis" },
+    grid: { left: 42, right: 14, top: 26, bottom: 52 },
+    xAxis: { type: "category", data: annualHist.map(function (d) { return d.label; }), axisLabel: { fontSize: 10.5, interval: 0, rotate: 30 } },
+    yAxis: { type: "value", name: "岗位数" },
+    series: [{
+      type: "bar", data: annualHist.map(function (d) { return d.count; }),
+      itemStyle: { color: "#2563eb", borderRadius: [4, 4, 0, 0] },
+      label: { show: true, position: "top", fontSize: 10.5 }
+    }]
   });
-  concl("concl-annual", annualPct != null ? "折算后中位从 <b>" + overall.p50 + "K</b> 升至 <b>" + (Math.round(annualized.p50 / 12 * 10) / 10) + "K</b>（+" + annualPct + "%），谈薪时应把 N 薪纳入。" : "暂无折算数据。");
+  concl("concl-annual", annualHist.length
+    ? "折算年薪中位 <b>" + fmtWan(annualized.p50) + "</b>；样本最多的是 <b>" + topAnnualBin.label + "</b>（" + topAnnualBin.count + " 个）。分箱按实际数据跨度自适应，空箱不显示。"
+    : "暂无折算年薪数据。");
 
   const widthHist = [
     { label: "≤8K", count: jobs.filter(function (j) { return j.salary && j.salary.width_k != null && j.salary.width_k <= 8; }).length },
@@ -369,68 +522,161 @@ const PAYLOAD = __PAYLOAD__;
   });
   concl("concl-width", "区间宽度中位 <b>" + fmt(widthStats.p50, "K") + "</b>，P75 为 " + fmt(widthStats.p75, "K") + "；中值单点代表岗位的误差约 ±" + (widthStats.p50 ? (widthStats.p50 / 2).toFixed(1) : "—") + "K。");
 
-  /* ---------- drivers ---------- */
-  const fundingRows = ((A.salary && A.salary.by_funding) || []).filter(function (r) { return r.p25 != null; });
-  chart("chart-funding", boxOption(fundingRows.slice(0, 8), "月薪"));
-  const listed = fundingRows.find(function (r) { return r.label === "已上市"; });
-  const unfunded = fundingRows.find(function (r) { return r.label === "未融资"; });
-  const undisclosed = fundingRows.find(function (r) { return r.label === "未披露"; });
-  concl("concl-funding", listed || unfunded ? "已上市中位 <b>" + fmt(listed && listed.p50, "K") + "</b> vs 未融资 <b>" + fmt(unfunded && unfunded.p50, "K") + "</b>" + (undisclosed ? "；未披露组中位 " + fmt(undisclosed.p50, "K") + "、P75 " + fmt(undisclosed.p75, "K") + "，里面常混着脱敏大厂。" : "") + " 融资阶段是公司层级的代理变量，不是薪资成因。" : "融资阶段数据不足。");
+  /* ---------- company research ---------- */
+  const CR = A.company_research || {};
 
-  const sizeData = sizeRows.filter(function (r) { return r.n > 0; });
+  const crFunding = (CR.by_funding || []).filter(function (r) { return r.companies > 0; });
+  chart("chart-funding", {
+    tooltip: { trigger: "axis" },
+    legend: { top: 0, textStyle: { fontSize: 11 } },
+    grid: { left: 48, right: 52, top: 34, bottom: 46 },
+    xAxis: { type: "category", data: crFunding.map(function (r) { return r.label; }), axisLabel: { fontSize: 10, interval: 0, rotate: 24 } },
+    yAxis: [{ type: "value", name: "公司数" }, { type: "value", name: "中位 K", splitLine: { show: false } }],
+    series: [
+      { name: "公司数", type: "bar", data: crFunding.map(function (r) { return r.companies; }), itemStyle: { color: "#bfdbfe", borderRadius: [4, 4, 0, 0] } },
+      { name: "岗位月薪中位", type: "line", yAxisIndex: 1, data: crFunding.map(function (r) { return r.p50; }), symbolSize: 6, lineStyle: { color: "#d97706", width: 2 }, itemStyle: { color: "#d97706" } }
+    ]
+  });
+  const crFundingTop = crFunding.filter(function (r) { return r.label !== "未披露"; }).sort(function (a, b) { return b.companies - a.companies; })[0];
+  const crFundingRich = crFunding.filter(function (r) { return r.label !== "未披露" && r.companies >= 3 && r.p50 != null; }).sort(function (a, b) { return b.p50 - a.p50; })[0];
+  const crFundingUnknown = crFunding.find(function (r) { return r.label === "未披露"; });
+  concl("concl-funding", crFunding.length
+    ? "共 <b>" + (CR.companies || 0) + "</b> 家公司" +
+      (crFundingUnknown ? "，融资已披露 " + (CR.coverage ? CR.coverage.funding_pct : "—") + "%（未披露 " + crFundingUnknown.companies + " 家）" : "") +
+      (crFundingTop ? "。已披露中 <b>" + esc(crFundingTop.label) + "</b> 最多（" + crFundingTop.companies + " 家，月薪中位 " + fmt(crFundingTop.p50, "K") + "）" : "") +
+      (crFundingRich ? "；样本 ≥3 的阶段里中位最高是 <b>" + esc(crFundingRich.label) + "</b>（" + fmt(crFundingRich.p50, "K") + "）" : "") +
+      "。融资阶段是公司阶段代理，不是薪资因果。"
+    : "融资数据不足。");
+
+  const crIndAll = (CR.by_industry || []).filter(function (r) { return r.companies > 0; });
+  const crIndTop = crIndAll.slice(0, 10).slice();
+  const crIndRest = crIndAll.slice(10);
+  if (crIndRest.length) {
+    crIndTop.push({
+      label: "其他",
+      companies: crIndRest.reduce(function (s, r) { return s + r.companies; }, 0),
+      n: crIndRest.reduce(function (s, r) { return s + r.n; }, 0),
+      p50: null
+    });
+  }
+  chart("chart-industry", {
+    tooltip: { trigger: "axis" },
+    legend: { top: 0, textStyle: { fontSize: 11 } },
+    grid: { left: 48, right: 52, top: 34, bottom: 54 },
+    xAxis: { type: "category", data: crIndTop.map(function (r) { return r.label; }), axisLabel: { fontSize: 9.5, interval: 0, rotate: 28 } },
+    yAxis: [{ type: "value", name: "公司数" }, { type: "value", name: "中位 K", splitLine: { show: false } }],
+    series: [
+      {
+        name: "公司数", type: "bar",
+        data: crIndTop.map(function (r) {
+          const gray = r.label === "未披露" || r.label === "其他";
+          return { value: r.companies, itemStyle: { color: gray ? "#cbd5e1" : "#fcd34d", borderRadius: [4, 4, 0, 0] } };
+        })
+      },
+      { name: "岗位月薪中位", type: "line", yAxisIndex: 1, data: crIndTop.map(function (r) { return r.p50; }), connectNulls: false, symbolSize: 6, lineStyle: { color: "#b45309", width: 2 }, itemStyle: { color: "#b45309" } }
+    ]
+  });
+  const crIndDisclosed = crIndAll.filter(function (r) { return r.label !== "未披露"; });
+  const crIndTopReal = crIndDisclosed.slice().sort(function (a, b) { return b.companies - a.companies; })[0];
+  const crIndRich = crIndAll.filter(function (r) { return r.companies >= 3 && r.p50 != null; }).sort(function (a, b) { return b.p50 - a.p50; })[0];
+  const crIndUnknown = crIndAll.find(function (r) { return r.label === "未披露"; });
+  concl("concl-industry", crIndAll.length
+    ? "已披露领域 <b>" + crIndAll.length + "</b> 个" + (crIndUnknown ? "，另有 " + crIndUnknown.companies + " 家未披露" : "") +
+      (crIndTopReal ? "；<b>" + esc(crIndTopReal.label) + "</b> 最多（" + crIndTopReal.companies + " 家，月薪中位 " + fmt(crIndTopReal.p50, "K") + "）" : "") +
+      (crIndRich ? "；样本 ≥3 的领域里中位最高是 <b>" + esc(crIndRich.label) + "</b>（" + fmt(crIndRich.p50, "K") + "）" : "") +
+      "。领域分布是本次检索的供给结构，不是全市场占比。"
+    : "领域数据不足。");
+
+  const crSize = (CR.by_size || []).filter(function (r) { return r.companies > 0; });
   chart("chart-size", {
     tooltip: { trigger: "axis" },
     legend: { top: 0, textStyle: { fontSize: 11 } },
-    grid: { left: 48, right: 52, top: 34, bottom: 42 },
-    xAxis: { type: "category", data: sizeData.map(function (r) { return r.label; }), axisLabel: { fontSize: 10.5, interval: 0, rotate: 24 } },
-    yAxis: [
-      { type: "value", name: "岗位数" },
-      { type: "value", name: "中位 K", splitLine: { show: false } }
-    ],
+    grid: { left: 48, right: 52, top: 34, bottom: 44 },
+    xAxis: { type: "category", data: crSize.map(function (r) { return r.label; }), axisLabel: { fontSize: 10, interval: 0, rotate: 24 } },
+    yAxis: [{ type: "value", name: "公司数" }, { type: "value", name: "中位 K", splitLine: { show: false } }],
     series: [
-      { name: "岗位数", type: "bar", data: sizeData.map(function (r) { return r.n; }), itemStyle: { color: "#bfdbfe", borderRadius: [4, 4, 0, 0] } },
-      { name: "薪资中位", type: "line", yAxisIndex: 1, data: sizeData.map(function (r) { return r.p50; }), symbolSize: 7, lineStyle: { color: "#d97706", width: 2 }, itemStyle: { color: "#d97706" } }
+      { name: "公司数", type: "bar", data: crSize.map(function (r) { return r.companies; }), itemStyle: { color: "#a7f3d0", borderRadius: [4, 4, 0, 0] } },
+      { name: "岗位月薪中位", type: "line", yAxisIndex: 1, data: crSize.map(function (r) { return r.p50; }), symbolSize: 6, lineStyle: { color: "#059669", width: 2 }, itemStyle: { color: "#059669" } }
     ]
   });
-  concl("concl-size", size1000 ? "1000–9999 人中位 <b>" + fmt(size1000.p50, "K") + "</b>；0–99 人团队中位约 " + fmt(sizeSmallMedian, "K") + "。规模越大薪资越高，但小团队不是低薪的唯一原因。" : "规模数据不足。");
+  const crSizeBig = crSize.filter(function (r) { return r.label === "1000-9999人" || r.label === "10000人以上"; });
+  const crSizeBigCompanies = crSizeBig.reduce(function (s, r) { return s + r.companies; }, 0);
+  const crSizeBigMedian = crSizeBig.length ? crSizeBig.reduce(function (s, r) { return s + (r.p50 || 0) * r.companies; }, 0) / Math.max(1, crSizeBig.reduce(function (s, r) { return s + r.companies; }, 0)) : null;
+  concl("concl-size", crSize.length
+    ? "1000 人以上公司 <b>" + crSizeBigCompanies + "</b> 家（占 " + Math.round(crSizeBigCompanies / Math.max(1, CR.companies) * 1000) / 10 + "%），加权月薪中位约 <b>" + fmt(crSizeBigMedian ? Math.round(crSizeBigMedian * 10) / 10 : null, "K") + "</b>。规模是资源与稳定性的代理，不是薪资唯一原因。"
+    : "规模数据不足。");
 
-  const districtRows = ((A.salary && A.salary.by_district) || []).filter(function (r) { return r.label !== "未标注" && r.n > 0; }).slice(0, 10);
-  chart("chart-district", {
+  const crAge = (CR.by_age || []).filter(function (r) { return r.companies > 0; });
+  chart("chart-age", {
     tooltip: { trigger: "axis" },
     legend: { top: 0, textStyle: { fontSize: 11 } },
-    grid: { left: 48, right: 52, top: 34, bottom: 42 },
-    xAxis: { type: "category", data: districtRows.map(function (r) { return r.label; }), axisLabel: { fontSize: 10.5, interval: 0, rotate: 24 } },
-    yAxis: [{ type: "value", name: "岗位数" }, { type: "value", name: "中位 K", splitLine: { show: false } }],
+    grid: { left: 48, right: 52, top: 34, bottom: 44 },
+    xAxis: { type: "category", data: crAge.map(function (r) { return r.label; }), axisLabel: { fontSize: 10, interval: 0 } },
+    yAxis: [{ type: "value", name: "公司数" }, { type: "value", name: "中位 K", splitLine: { show: false } }],
     series: [
-      { name: "岗位数", type: "bar", data: districtRows.map(function (r) { return r.n; }), itemStyle: { color: "#a7f3d0", borderRadius: [4, 4, 0, 0] } },
-      { name: "薪资中位", type: "line", yAxisIndex: 1, data: districtRows.map(function (r) { return r.p50; }), symbolSize: 6, lineStyle: { color: "#059669", width: 2 }, itemStyle: { color: "#059669" } }
+      { name: "公司数", type: "bar", data: crAge.map(function (r) { return r.companies; }), itemStyle: { color: "#ddd6fe", borderRadius: [4, 4, 0, 0] } },
+      { name: "岗位月薪中位", type: "line", yAxisIndex: 1, data: crAge.map(function (r) { return r.p50; }), symbolSize: 6, lineStyle: { color: "#7c3aed", width: 2 }, itemStyle: { color: "#7c3aed" } }
     ]
   });
-  const topDistrict = districtRows.slice().sort(function (a, b) { return b.n - a.n; })[0];
-  const richDistrict = districtRows.slice().sort(function (a, b) { return (b.p50 || 0) - (a.p50 || 0); })[0];
-  concl("concl-district", topDistrict ? "岗位最多的是 <b>" + esc(topDistrict.label) + "</b>（" + topDistrict.n + " 个，中位 " + fmt(topDistrict.p50, "K") + "）；中位最高的是 <b>" + esc(richDistrict.label) + "</b>（" + fmt(richDistrict.p50, "K") + "）。供给密度 ≠ 薪资溢价。" : "区域数据不足。");
+  const crAgeMature = crAge.filter(function (r) { return ["10–20年", "20年+"].indexOf(r.label) >= 0; }).reduce(function (s, r) { return s + r.companies; }, 0);
+  const crAgeYoung = crAge.filter(function (r) { return ["≤3年", "3–5年"].indexOf(r.label) >= 0; }).reduce(function (s, r) { return s + r.companies; }, 0);
+  concl("concl-age", crAge.length
+    ? "10 年以上公司 <b>" + crAgeMature + "</b> 家，5 年以内 <b>" + crAgeYoung + "</b> 家；成立年份覆盖 " + (CR.coverage ? CR.coverage.founded_pct : "—") + "%。老公司不一定给得高，但通常流程更成熟。"
+    : "成立年份数据不足。");
 
-  const companyRows = (A.companies || []).slice(0, 12);
-  chart("chart-companies", {
-    tooltip: { formatter: function (p) { const v = p.value; return esc(v[3]) + "<br/>岗位数 " + v[0] + "<br/>薪资中位 " + v[1] + "K"; } },
-    grid: { left: 48, right: 24, top: 24, bottom: 34 },
-    xAxis: { type: "value", name: "岗位数", minInterval: 1 },
-    yAxis: { type: "value", name: "薪资中位 K" },
+  const ifm = CR.industry_funding || { industries: [], stages: [], cells: [], max: 1 };
+  const heatColor = function (v) {
+    const max = Math.max(1, ifm.max || 1);
+    const t = Math.min(1, v / max);
+    const from = [239, 246, 255], to = [29, 78, 216];
+    const rgb = from.map(function (c, i) { return Math.round(c + (to[i] - c) * t); });
+    return "rgb(" + rgb.join(",") + ")";
+  };
+  chart("chart-indfund", {
+    tooltip: {
+      position: "top",
+      formatter: function (p) {
+        return esc(ifm.industries[p.value[0]] || "") + " × " + esc(ifm.stages[p.value[1]] || "") + "：" + p.value[2] + " 家";
+      }
+    },
+    grid: { left: 104, right: 22, top: 18, bottom: 74 },
+    xAxis: { type: "category", data: ifm.industries, axisLabel: { fontSize: 9.5, interval: 0, rotate: 28 }, splitArea: { show: true } },
+    yAxis: { type: "category", data: ifm.stages, axisLabel: { fontSize: 9.5 }, splitArea: { show: true } },
     series: [{
-      type: "scatter",
-      data: companyRows.map(function (c) { return [c.n, c.p50, c.desensitized ? 1 : 0, c.display_name]; }),
-      symbolSize: function (v) { return 12 + v[0] * 5; },
-      itemStyle: { color: function (p) { return p.value[2] ? "#d97706" : "#2563eb"; }, opacity: .85 },
-      label: { show: true, formatter: function (p) { return p.value[3]; }, position: "top", fontSize: 10 }
+      type: "heatmap",
+      data: (ifm.cells || []).map(function (c) {
+        return { value: c, itemStyle: { color: heatColor(c[2]) } };
+      }),
+      label: { show: true, fontSize: 10 },
+      emphasis: { itemStyle: { shadowBlur: 8, shadowColor: "rgba(0,0,0,.25)" } }
     }]
   });
-  concl("concl-companies", companyRows.length ? "招聘量 Top：" + companyRows.slice(0, 4).map(function (c) { return esc(c.display_name) + "（" + c.n + " 岗 / " + fmt(c.p50, "K") + "）"; }).join("、") + "。招得多 ≠ 给得高。" : "公司数据不足。");
+  const topCell = (ifm.cells || []).slice().sort(function (a, b) { return b[2] - a[2]; })[0];
+  concl("concl-indfund", topCell
+    ? "最集中的组合是 <b>" + esc(ifm.industries[topCell[0]] || "—") + " × " + esc(ifm.stages[topCell[1]] || "—") + "</b>（" + topCell[2] + " 家）。热力图按公司计数，不按岗位数加权。"
+    : "行业 × 融资交叉样本不足。");
 
-  const desensRows = ((A.salary && A.salary.by_desensitized) || []).filter(function (r) { return r.p25 != null; });
-  chart("chart-desens", boxOption(desensRows, "月薪"));
-  const desensYes = desensRows.find(function (r) { return r.label === "是"; });
-  const desensNo = desensRows.find(function (r) { return r.label === "否"; });
-  concl("concl-desens", desensYes && desensNo ? "脱敏企业中位 <b>" + fmt(desensYes.p50, "K") + "</b> vs 非脱敏 <b>" + fmt(desensNo.p50, "K") + "</b>；脱敏岗位显著更高，说明大量高薪来自不愿披露名称的大厂/头部公司。" : "脱敏数据不足。");
+  const conc = CR.concentration || {};
+  const topCos = (CR.top_companies || []).slice(0, 10);
+  let cum = 0;
+  const cumData = topCos.map(function (c) {
+    cum += c.jobs;
+    return CR.total_jobs ? Math.round(cum / CR.total_jobs * 1000) / 10 : null;
+  });
+  chart("chart-concentration", {
+    tooltip: { trigger: "axis" },
+    legend: { top: 0, textStyle: { fontSize: 11 } },
+    grid: { left: 48, right: 52, top: 34, bottom: 58 },
+    xAxis: { type: "category", data: topCos.map(function (c) { return c.display_name; }), axisLabel: { fontSize: 9, interval: 0, rotate: 30 } },
+    yAxis: [{ type: "value", name: "岗位数" }, { type: "value", name: "累计 %", max: 100, splitLine: { show: false } }],
+    series: [
+      { name: "岗位数", type: "bar", data: topCos.map(function (c) { return c.jobs; }), itemStyle: { color: "#c7d2fe", borderRadius: [4, 4, 0, 0] } },
+      { name: "累计占比", type: "line", yAxisIndex: 1, data: cumData, symbolSize: 6, lineStyle: { color: "#4f46e5", width: 2 }, itemStyle: { color: "#4f46e5" } }
+    ]
+  });
+  concl("concl-concentration", topCos.length
+    ? "Top 5 公司占 <b>" + fmt(conc.top5_share_pct, "%") + "</b>，Top 10 占 <b>" + fmt(conc.top10_share_pct, "%") + "</b>；单岗位公司占 <b>" + fmt(conc.single_job_company_pct, "%") + "</b>。HHI " + fmt(conc.hhi) + "（越高越集中）。招得多 ≠ 给得高。"
+    : "公司集中度数据不足。");
 
   /* ---------- skills ---------- */
   const skillTop = ((A.skills && A.skills.top) || []).slice(0, 15);
@@ -442,6 +688,13 @@ const PAYLOAD = __PAYLOAD__;
     series: [{ type: "bar", data: skillTop.map(function (d) { return d.n; }), itemStyle: { color: "#0891b2", borderRadius: [0, 4, 4, 0] }, label: { show: true, position: "right", fontSize: 10.5 } }]
   });
   concl("concl-skills", skillTop.length ? "高频技能：" + skillTop.slice(0, 6).map(function (d) { return esc(d.skill) + "（" + d.n + "）"; }).join("、") + "。这些是入场券，不等于溢价。" : "技能数据不足。");
+
+  const cloud = A.keyword_cloud || [];
+  renderCloud(document.getElementById("chart-cloud"), cloud);
+  concl("concl-cloud", cloud.length
+    ? "高频关键词：" + cloud.slice(0, 3).map(function (d) { return "<b>" + esc(d.text) + "</b>（" + d.count + "）"; }).join("、") +
+      "。字号越大，出现该词的岗位越多；标题切词与技能词合并计数。"
+    : "关键词样本不足。");
 
   const liftRows = ((A.skills && A.skills.lift) || []).slice(0, 12);
   const entry = (A.skills && A.skills.entry) || [];
@@ -459,31 +712,88 @@ const PAYLOAD = __PAYLOAD__;
   });
   concl("concl-lift", topLift ? "溢价最高：<b>" + esc(topLift.skill) + " +" + topLift.lift + "K</b>" + (entry && entry.length ? "；高频但几乎不溢价：" + entry.slice(0, 3).map(function (x) { return esc(x.skill) + "（" + x.n + " 次，" + (x.lift > 0 ? "+" : "") + x.lift + "K）"; }).join("、") + "，属于入场券能力。" : "") : "样本不足，无法计算技能溢价。");
 
-  const titleRows = (A.titles || []).slice(0, 7);
-  chart("chart-titles", {
-    tooltip: { trigger: "axis" },
-    legend: { top: 0, textStyle: { fontSize: 11 } },
-    grid: { left: 48, right: 52, top: 34, bottom: 34 },
-    xAxis: { type: "category", data: titleRows.map(function (r) { return r.label; }), axisLabel: { fontSize: 10.5, interval: 0, rotate: 24 } },
-    yAxis: [{ type: "value", name: "岗位数" }, { type: "value", name: "中位 K", splitLine: { show: false } }],
-    series: [
-      { name: "岗位数", type: "bar", data: titleRows.map(function (r) { return r.n; }), itemStyle: { color: "#c7d2fe", borderRadius: [4, 4, 0, 0] } },
-      { name: "薪资中位", type: "line", yAxisIndex: 1, data: titleRows.map(function (r) { return r.p50; }), symbolSize: 6, lineStyle: { color: "#4f46e5", width: 2 }, itemStyle: { color: "#4f46e5" } }
-    ]
+  const quadMap = {};
+  ((A.skills && A.skills.top) || []).concat((A.skills && A.skills.lift) || []).forEach(function (d) {
+    if (d && d.skill) quadMap[d.skill] = d;
   });
-  const bigModel = titleRows.find(function (r) { return r.label === "大模型"; });
-  concl("concl-titles", bigModel ? "「大模型」标题中位 <b>" + fmt(bigModel.p50, "K") + "</b>；泛称「AI 产品经理」中位 " + fmt((titleRows.find(function (r) { return r.label === "AI产品经理"; }) || {}).p50, "K") + "。细分方向差异巨大。" : "标题数据不足。");
+  const quadRows = Object.keys(quadMap).map(function (k) { return quadMap[k]; }).filter(function (d) { return d.n >= 5; });
+  const covs = quadRows.map(function (d) { return d.pct; }).sort(function (a, b) { return a - b; });
+  const covMedian = covs.length ? covs[Math.floor(covs.length / 2)] : 0;
+  const quadColor = function (d) {
+    if (d.pct >= covMedian && d.lift >= 0) return "#059669";
+    if (d.pct >= covMedian && d.lift < 0) return "#2563eb";
+    if (d.pct < covMedian && d.lift >= 0) return "#d97706";
+    return "#94a3b8";
+  };
+  chart("chart-quadrant", {
+    tooltip: {
+      formatter: function (p) {
+        return esc(p.value[3]) + "<br/>覆盖率 " + p.value[0] + "%<br/>溢价 " + (p.value[1] > 0 ? "+" : "") + p.value[1] +
+          "K<br/>中位 " + fmt(p.value[2], "K") + " · " + p.value[4] + " 岗";
+      }
+    },
+    grid: { left: 48, right: 24, top: 20, bottom: 34 },
+    xAxis: { type: "value", name: "覆盖率 %", min: 0 },
+    yAxis: { type: "value", name: "溢价 K" },
+    series: [{
+      type: "scatter",
+      data: quadRows.map(function (d) { return [d.pct, d.lift, d.median, d.skill, d.n]; }),
+      symbolSize: function (v) { return 8 + Math.sqrt(v[4]) * 1.1; },
+      itemStyle: {
+        color: function (p) { return quadColor({ pct: p.value[0], lift: p.value[1] }); },
+        opacity: .85
+      },
+      label: { show: true, formatter: function (p) { return p.value[3]; }, position: "top", fontSize: 9.5 },
+      labelLayout: { hideOverlap: true },
+      markLine: {
+        silent: true, symbol: "none", lineStyle: { color: "#cbd5e1", type: "dashed" },
+        data: [{ xAxis: covMedian }, { yAxis: 0 }]
+      }
+    }]
+  });
+  const invest = quadRows.filter(function (d) { return d.pct >= covMedian && d.lift >= 0; }).sort(function (a, b) { return b.lift - a.lift; }).slice(0, 4);
+  const tableStakes = quadRows.filter(function (d) { return d.pct >= covMedian && d.lift < 0; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 4);
+  const niche = quadRows.filter(function (d) { return d.pct < covMedian && d.lift >= 0; }).sort(function (a, b) { return b.lift - a.lift; }).slice(0, 3);
+  concl("concl-quadrant", quadRows.length
+    ? "右上优先投入：" + (invest.length ? invest.map(function (d) { return "<b>" + esc(d.skill) + "</b>（+" + d.lift + "K）"; }).join("、") : "暂无") +
+      "；高频但低溢价（入场券）：" + (tableStakes.length ? tableStakes.map(function (d) { return esc(d.skill); }).join("、") : "暂无") +
+      "；小众高溢价：" + (niche.length ? niche.map(function (d) { return esc(d.skill); }).join("、") : "暂无") + "。"
+    : "技能样本不足。");
 
-  const jd = A.jd || {};
-  const jdHist = jd.histogram || [];
-  chart("chart-jd", {
-    tooltip: { trigger: "axis" },
-    grid: { left: 42, right: 14, top: 26, bottom: 34 },
-    xAxis: { type: "category", data: jdHist.map(function (d) { return d.label; }), axisLabel: { fontSize: 10.5 } },
-    yAxis: { type: "value", name: "岗位数" },
-    series: [{ type: "bar", data: jdHist.map(function (d) { return d.count; }), itemStyle: { color: "#f59e0b", borderRadius: [4, 4, 0, 0] }, label: { show: true, position: "top", fontSize: 10.5 } }]
+  const combos = (A.skills && A.skills.combos) || [];
+  chart("chart-combos", {
+    tooltip: {
+      trigger: "axis",
+      formatter: function (ps) {
+        const c = combos[ps[0].dataIndex];
+        return esc(c.a) + " + " + esc(c.b) + "<br/>" + c.n + " 岗 · 中位 " + fmt(c.median, "K") +
+          " · 溢价 " + (c.lift > 0 ? "+" : "") + c.lift + "K";
+      }
+    },
+    grid: { left: 150, right: 82, top: 14, bottom: 28 },
+    xAxis: { type: "value", name: "岗位数", minInterval: 1 },
+    yAxis: {
+      type: "category", inverse: true,
+      data: combos.map(function (c) { return c.a + " + " + c.b; }),
+      axisLabel: { fontSize: 9.5, width: 138, overflow: "truncate" }
+    },
+    series: [{
+      type: "bar",
+      data: combos.map(function (c) { return c.n; }),
+      itemStyle: { color: "#8b5cf6", borderRadius: [0, 4, 4, 0] },
+      label: {
+        show: true, position: "right", fontSize: 9.5,
+        formatter: function (p) { const c = combos[p.dataIndex]; return c.n + " 岗 · " + fmt(c.median, "K"); }
+      }
+    }]
   });
-  concl("concl-jd", jd.n ? "JD 字数中位 <b>" + fmt(jd.p50, "字") + "</b>，P75 " + fmt(jd.p75, "字") + "；与月薪的相关系数 r = <b>" + fmt(jd.corr_salary) + "</b>，几乎无关。JD 长短不是薪资信号。" : "JD 数据不足。");
+  const topCombo = combos[0];
+  const richCombo = combos.slice().sort(function (a, b) { return b.lift - a.lift; })[0];
+  concl("concl-combos", topCombo
+    ? "最常见组合 <b>" + esc(topCombo.a) + " + " + esc(topCombo.b) + "</b>（" + topCombo.n + " 岗，中位 " + fmt(topCombo.median, "K") + "）" +
+      (richCombo && richCombo !== topCombo ? "；溢价最高 <b>" + esc(richCombo.a) + " + " + esc(richCombo.b) + "</b>（+" + richCombo.lift + "K）" : "") +
+      "。组合比单技能更能说明岗位真正要什么。"
+    : "组合数据不足。");
 
   /* ---------- founders ---------- */
   const conf = (A.founders && A.founders.confidence) || {};
@@ -496,6 +806,28 @@ const PAYLOAD = __PAYLOAD__;
     series: [{ type: "pie", radius: ["42%", "68%"], center: ["50%", "42%"], data: confData, label: { fontSize: 10.5 }, itemStyle: { borderColor: "#fff", borderWidth: 2 } }]
   });
   concl("concl-founders", (A.founders && A.founders.companies) ? "共 " + A.founders.companies + " 家公司，仅 <b>" + A.founders.with_founder + "</b> 家查到创始人姓名；高置信 " + (conf.high || 0) + " 家、中 " + (conf.med || 0) + " 家、低 " + (conf.low || 0) + " 家。背调覆盖不完整本身就是风险提示。" : "尚未采集公司背调。");
+
+  const teamDist = (A.founders && A.founders.team_score) || {};
+  const teamOrder = [
+    ["强", "#059669"], ["较好", "#0d9488"], ["一般", "#d97706"],
+    ["有限", "#dc2626"], ["未评估", "#94a3b8"]
+  ];
+  chart("chart-teamscore", {
+    tooltip: { trigger: "axis" },
+    grid: { left: 42, right: 16, top: 18, bottom: 28 },
+    xAxis: { type: "category", data: teamOrder.map(function (x) { return x[0]; }), axisLabel: { fontSize: 11 } },
+    yAxis: { type: "value", name: "公司数", minInterval: 1 },
+    series: [{
+      type: "bar",
+      data: teamOrder.map(function (x) {
+        return { value: teamDist[x[0]] || 0, itemStyle: { color: x[1], borderRadius: [4, 4, 0, 0] } };
+      }),
+      label: { show: true, position: "top", fontSize: 10.5 }
+    }]
+  });
+  concl("concl-teamscore", (A.founders && A.founders.companies)
+    ? "强 <b>" + (teamDist["强"] || 0) + "</b> 家、较好 " + (teamDist["较好"] || 0) + " 家、一般 " + (teamDist["一般"] || 0) + " 家、有限 " + (teamDist["有限"] || 0) + " 家、未评估 " + (teamDist["未评估"] || 0) + " 家。评分基于公开履历里的名企 / 名校 / 高管 / 学历信号，是线索不是能力定论。"
+    : "暂无老板/团队背景数据。");
 
   /* ---------- jobs table ---------- */
   function expLabel(exp) {
@@ -517,6 +849,10 @@ const PAYLOAD = __PAYLOAD__;
     const cls = v >= 75 ? "hi" : (v >= 55 ? "mid" : "low");
     return '<span class="score ' + cls + '">' + v + '</span>';
   }
+  function recPill(label, reason) {
+    const cls = { "推荐": "ok", "可考虑": "consider", "待核实": "pending", "不推荐": "bad" }[label] || "pending";
+    return '<span class="rec-pill ' + cls + '"' + (reason ? ' title="' + esc(reason) + '"' : "") + '>' + esc(label || "—") + '</span>';
+  }
   const rows = jobs.map(function (j) {
     const prof = profileMap[j.company_key] || {};
     const idx = companyIndex[j.company_key] || {};
@@ -531,13 +867,17 @@ const PAYLOAD = __PAYLOAD__;
       city: j.city || "",
       district: j.district || "",
       salary: sal.mid_k != null ? sal.mid_k : null,
-      annual: sal.mid_k != null ? Math.round(sal.mid_k * (sal.months || 12) / 12 * 10) / 10 : null,
+      annualWan: sal.mid_k != null ? Math.round(sal.mid_k * (sal.months || 12) / 10 * 10) / 10 : null,
       salaryText: sal.text || "",
       expText: expLabel(j.exp),
       education: j.education || "不限",
       level: j.level_guess || "未知",
       skills: j.skills || [],
       score: scoreMap[j.job_id] != null ? scoreMap[j.job_id] : 0,
+      commuteLabel: (commuteIndex[j.job_id] && commuteIndex[j.job_id].label) ||
+        (A.commute && A.commute.enabled ? "未计算" : "—"),
+      recLabel: (recLabels[j.job_id] && recLabels[j.job_id].label) || "—",
+      recReason: (recLabels[j.job_id] && recLabels[j.job_id].reason) || "",
       risks: prof.risk_signals || [],
       url: j.url || ""
     };
@@ -566,15 +906,17 @@ const PAYLOAD = __PAYLOAD__;
         '<td>' + tierBadge(r.tier) + '</td>' +
         '<td>' + esc(r.city) + (r.district ? ' · ' + esc(r.district) : '') + '</td>' +
         '<td class="num">' + (r.salary != null ? r.salary + 'K' : '—') + '</td>' +
-        '<td class="num">' + (r.annual != null ? r.annual + 'K' : '—') + '</td>' +
+        '<td class="num">' + (r.annualWan != null ? r.annualWan + '万' : '—') + '</td>' +
         '<td>' + esc(r.expText) + '</td>' +
         '<td>' + esc(r.education) + '</td>' +
         '<td>' + skillHtml + '</td>' +
         '<td class="num">' + scorePill(r.score) + '</td>' +
+        '<td>' + esc(r.commuteLabel) + '</td>' +
+        '<td>' + recPill(r.recLabel, r.recReason) + '</td>' +
         '<td>' + riskBadge(r) + '</td>' +
         '<td>' + (r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">查看</a>' : '—') + '</td>' +
         "</tr>";
-    }).join("") || '<tr><td colspan="12"><div class="empty">没有符合条件的岗位</div></td></tr>';
+    }).join("") || '<tr><td colspan="14"><div class="empty">没有符合条件的岗位</div></td></tr>';
   }
   const cityList = [];
   rows.forEach(function (r) { if (r.city && cityList.indexOf(r.city) < 0) cityList.push(r.city); });
@@ -595,7 +937,7 @@ const PAYLOAD = __PAYLOAD__;
     th.addEventListener("click", function () {
       const key = th.getAttribute("data-key");
       if (state.key === key) state.dir *= -1;
-      else { state.key = key; state.dir = (key === "score" || key === "salary" || key === "annual") ? -1 : 1; }
+      else { state.key = key; state.dir = (key === "score" || key === "salary" || key === "annualWan") ? -1 : 1; }
       document.querySelectorAll("#jobsTable thead th").forEach(function (x) { x.classList.remove("sorted-asc", "sorted-desc"); });
       th.classList.add(state.dir === 1 ? "sorted-asc" : "sorted-desc");
       renderJobs();
@@ -607,7 +949,8 @@ const PAYLOAD = __PAYLOAD__;
   const grid = $("#companyGrid");
   if (profiles.length) {
     grid.innerHTML = profiles.filter(function (p) { return p.display_name; }).slice(0, 24).map(function (p) {
-      const tier = p.tier || "unknown";
+      const ci = companyIndex[p.company_key] || {};
+      const tier = (p.tier && p.tier !== "unknown") ? p.tier : (ci.tier || "unknown");
       const confidence = p.confidence || "low";
       const founder = p.founder && p.founder.name
         ? '<div style="font-size:12px;margin:4px 0 8px;line-height:1.55"><b>创始人/管理层：</b>' + esc(p.founder.name) + (p.founder.background ? " — " + esc(p.founder.background) : "") + "</div>"
@@ -615,10 +958,18 @@ const PAYLOAD = __PAYLOAD__;
       const news = (p.recent_news || []).map(function (n) { return '<div class="news-item">' + esc(n.headline) + (n.date ? ' <span style="color:#94a3b8">(' + esc(n.date) + ")</span>" : "") + "</div>"; }).join("");
       const risks = (p.risk_signals || []).map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("");
       const sources = (p.sources || []).slice(0, 4).map(function (s) { return '<a href="' + esc(s.url || "") + '" target="_blank" rel="noopener noreferrer">' + esc(s.title || s.url || "来源") + (s.date ? " · " + esc(s.date) : "") + "</a>"; }).join("");
-      const meta = [p.funding_stage, p.size, p.industry, p.founded ? p.founded + " 成立" : ""].filter(Boolean).map(esc).join(" · ");
+      const meta = [ci.funding_stage || p.funding_stage, ci.size || p.size, ci.industry || p.industry, p.founded ? p.founded + " 成立" : ""].filter(Boolean).map(esc).join(" · ");
       const confCls = confidence === "high" ? "ok" : (confidence === "med" ? "med" : "low");
-      return '<div class="company-card"><h3>' + esc(p.display_name) + " " + tierBadge(tier) + ' <span class="badge ' + confCls + '">' + esc(confLabel[confidence] || confidence) + "</span></h3>" +
-        '<div class="company-meta">' + meta + "</div>" + founder +
+      const team = teamScoreMap[p.company_key] || {};
+      const teamCls = team.label === "强" ? "ok" : (team.label === "较好" ? "ok" : (team.label === "一般" ? "med" : (team.label === "有限" ? "low" : "none")));
+      const teamBadge = team.score != null
+        ? '<span class="badge ' + teamCls + '" title="' + esc((team.signals || []).join("；")) + '">老板 ' + team.score + " · " + esc(team.label) + "</span>"
+        : '<span class="badge none">老板未评估</span>';
+      const teamSignals = (team.signals || []).length
+        ? '<div class="company-meta">评分依据：' + esc(team.signals.join("；")) + "</div>"
+        : "";
+      return '<div class="company-card"><h3>' + esc(p.display_name) + " " + tierBadge(tier) + ' ' + teamBadge + ' <span class="badge ' + confCls + '">' + esc(confLabel[confidence] || confidence) + "</span></h3>" +
+        '<div class="company-meta">' + meta + "</div>" + founder + teamSignals +
         (news ? '<div style="margin-bottom:6px">' + news + "</div>" : "") +
         (risks ? '<ul class="risk-list">' + risks + "</ul>" : "") +
         (p.disambiguation_note ? '<div class="note">' + esc(p.disambiguation_note) + "</div>" : "") +
@@ -644,11 +995,16 @@ const PAYLOAD = __PAYLOAD__;
       : '<div style="margin-top:8px;font-size:12px;color:#6b7280">未发现明显异常</div>');
 
   $("#methodWrap").textContent =
-    "月薪中值 =（岗位标称下限 + 上限）/ 2，单位 K/月；折算月薪 = 月薪中值 × 薪数 ÷ 12。\n" +
+    "月薪中值 =（岗位标称下限 + 上限）/ 2，单位 K/月；折算年薪 = 月薪中值 × 薪数（K/年，图上按 万/年 展示）。\n" +
     "薪资分布按固定 10 箱统计：<10、10–15、15–20、20–25、25–30、30–35、35–40、40–50、50–60、60+（K/月）。\n" +
+    "折算年薪分布不分固定 10 箱：按数据跨度选择整齐步长（如 10 万 / 20 万），空箱不输出。\n" +
     "职级由标题关键词（初级/中级/高级/资深/专家/管理）推断，缺失时按经验要求回退，属于启发式估计。\n" +
     "技能由 JD 文本词典匹配；技能溢价 = 出现该技能的岗位月薪中位 − 整体月薪中位。\n" +
+    "公司调研按公司去重计数；融资/领域字段里的「A轮/天使轮」等值会自动归位到融资阶段。招聘集中度用 Top5/Top10 岗位占比与 HHI。\n" +
+    "老板/团队评分 = 履历关键词规则（名企/名校/高管/学历/知名人物 + 背调置信度），0–100，仅作线索，不是能力定论。\n" +
     "匹配分（0–100）= 岗位关键词覆盖 40 + 薪资契合 25 + 城市 15 + 经验 10 + 公司背调置信度 10。\n" +
+    "通勤匹配仅在用户要求且取得地图授权后启用；时长取所选方式的最短值，未计算标「待核实」，不冒充匹配。\n" +
+    "推荐结论：薪资与通勤都在容忍范围内为「推荐」，轻微偏差为「可考虑」，明显低于期望或超出通勤为「不推荐」。结果不足时结论为 insufficient，不伪造、不硬凑。\n" +
     "薪资为招聘方挂牌价，非实际 offer；区间中值单点误差约 ±区间宽度/2。";
 
   $("#complianceWrap").textContent = P.compliance || "本报告为个人求职参考，数据来自公开招聘信息，请遵守各平台服务条款。";

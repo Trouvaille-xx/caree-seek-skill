@@ -28,6 +28,21 @@
           "city": { "type": "string" },
           "salary_mid_k": { "type": ["number", "null"] },
           "score": { "type": "number" },
+          "base_score": { "type": "number" },
+          "commute_penalty": { "type": "number" },
+          "commute": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "minutes": { "type": ["number", "null"] },
+              "mode": { "type": "string" },
+              "within_max": { "type": ["boolean", "null"] },
+              "penalty": { "type": "number" },
+              "note": { "type": "string" }
+            }
+          },
+          "recommendation": { "type": "string" },
+          "recommendation_reason": { "type": "string" },
           "matched_skills": { "type": "array" },
           "missing_skills": { "type": "array" },
           "breakdown": { "type": "object" },
@@ -47,6 +62,20 @@
     },
     "bands": { "type": "object" },
     "salary_gap": { "type": "object" },
+    "commute": { "type": "object" },
+    "recommendation": {
+      "type": "object",
+      "properties": {
+        "status": { "enum": ["ok", "partial", "insufficient"] },
+        "counts": { "type": "object" },
+        "reason": { "type": "string" },
+        "alternatives": { "type": "array", "items": { "type": "string" } },
+        "salary_expected_min": { "type": ["number", "null"] },
+        "salary_found_top_p50": { "type": ["number", "null"] },
+        "commute_median": { "type": ["number", "null"] },
+        "commute_max": { "type": ["number", "null"] }
+      }
+    },
     "suggestions": { "type": "array", "items": { "type": "string" } }
   },
   "required": ["run_id", "resume", "ranked", "stats", "suggestions"]

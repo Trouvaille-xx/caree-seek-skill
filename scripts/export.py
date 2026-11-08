@@ -66,13 +66,29 @@ def load_run(run: Path):
     return cfg, normalized, analysis, profiles, match
 
 
+def commute_text(analysis, job_id):
+    idx = (analysis.get("commute_index") or {}).get(job_id)
+    if idx and idx.get("label"):
+        return idx["label"]
+    return "未计算" if (analysis.get("commute") or {}).get("enabled") else ""
+
+
+def recommendation_text(analysis, job_id):
+    rec = ((analysis.get("recommendation") or {}).get("labels") or {}).get(job_id) or {}
+    label = rec.get("label") or ""
+    reason = rec.get("reason") or ""
+    return f"{label}（{reason}）" if label and reason else label
+
+
 def build_main(analysis, normalized, profiles):
     score_map = {s["job_id"]: s["score"] for s in analysis.get("scores", [])}
+    team_map = {e.get("company_key"): (e.get("team_score") or {}) for e in analysis.get("company_index", [])}
     headers = [
-        "序号", "职位名称", "薪资", "月薪下限K", "月薪上限K", "月薪中值K", "折算月薪K", "薪数", "区间宽度K",
+        "序号", "职位名称", "薪资", "月薪下限K", "月薪上限K", "月薪中值K", "折算年薪K", "薪数", "区间宽度K",
         "经验要求", "口径", "学历", "工作区域", "公司名称", "是否脱敏", "融资阶段", "公司规模", "行业",
         "法定代表人", "成立日期", "企业类型", "注册资金", "工商全称", "创始人", "联合创始人", "创始人背景",
         "公司阶段/融资", "工作地址", "公司介绍", "岗位JD原文", "JD字数", "职级推断", "技能", "匹配分",
+        "通勤距离", "推荐结论", "老板/团队评分", "评分依据",
     ]
     rows = []
     for idx, job in enumerate(normalized.get("jobs", []), start=1):
@@ -82,6 +98,7 @@ def build_main(analysis, normalized, profiles):
         salary = job.get("salary") or {}
         meta = job.get("company_meta") or {}
         founder = profile.get("founder") or {}
+        team = team_map.get(job.get("company_key")) or {}
         mid = salary.get("mid_k")
         months = salary.get("months") or 12
         rows.append([
@@ -91,7 +108,7 @@ def build_main(analysis, normalized, profiles):
             salary.get("min_k", ""),
             salary.get("max_k", ""),
             mid if mid is not None else "",
-            round(mid * months / 12, 1) if mid is not None else "",
+            round(mid * months, 1) if mid is not None else "",
             months if mid is not None else "",
             salary.get("width_k", ""),
             exp_text(job.get("exp")),
@@ -119,6 +136,10 @@ def build_main(analysis, normalized, profiles):
             job.get("level_guess", "未知"),
             "、".join(job.get("skills", [])),
             score_map.get(job.get("job_id"), ""),
+            commute_text(analysis, job.get("job_id")),
+            recommendation_text(analysis, job.get("job_id")),
+            f"{team.get('score')} {team.get('label')}" if team.get("score") is not None else "未评估",
+            "；".join(team.get("signals") or []),
         ])
     return headers, rows
 
@@ -127,8 +148,9 @@ def build_companies(analysis, normalized, profiles):
     headers = [
         "序号", "公司名称", "工商全称", "是否脱敏", "融资阶段", "公司规模", "行业", "法定代表人", "成立日期",
         "注册资金", "企业类型", "创始人", "联合创始人", "创始人背景", "公司阶段/融资",
-        "在招岗位数", "薪资中位K", "创始人置信度", "来源/备注",
+        "在招岗位数", "薪资中位K", "创始人置信度", "老板/团队评分", "评分等级", "评分依据", "来源/备注",
     ]
+    company_index = {e.get("company_key"): e for e in analysis.get("company_index", [])}
     counts = {}
     mids = {}
     for job in normalized.get("jobs", []):
@@ -147,14 +169,16 @@ def build_companies(analysis, normalized, profiles):
         values = sorted(mids.get(key, []))
         median = values[len(values) // 2] if values else ""
         sources = "；".join(s.get("url", "") for s in (profile.get("sources") or []) if s.get("url"))
+        entry = company_index.get(key) or {}
+        team = entry.get("team_score") or {}
         rows.append([
             idx,
             profile.get("display_name", ""),
             extras.get("工商全称", ""),
             extras.get("是否脱敏", ""),
-            profile.get("funding_stage", ""),
+            entry.get("funding_stage") or profile.get("funding_stage", ""),
             profile.get("size", ""),
-            profile.get("industry", ""),
+            entry.get("industry") or profile.get("industry", ""),
             extras.get("法定代表人", ""),
             profile.get("founded", ""),
             extras.get("注册资金", ""),
@@ -166,6 +190,9 @@ def build_companies(analysis, normalized, profiles):
             counts.get(key, 0),
             median,
             CONF_CN.get(profile.get("confidence"), ""),
+            team.get("score") if team.get("score") is not None else "未评估",
+            team.get("label", ""),
+            "；".join(team.get("signals") or []),
             (profile.get("disambiguation_note") or sources or extras.get("来源/备注", "")),
         ])
     return headers, rows
@@ -183,15 +210,32 @@ def build_stats(analysis):
         ["有效薪资样本", overall.get("n", 0)],
         ["月薪 P25", overall.get("p25")], ["月薪中位", overall.get("p50")],
         ["月薪 P75", overall.get("p75")], ["月薪均值", overall.get("mean")],
-        ["折算月薪 P25", round(annual.get("p25", 0) / 12, 1) if annual.get("p25") else None],
-        ["折算月薪中位", round(annual.get("p50", 0) / 12, 1) if annual.get("p50") else None],
-        ["折算月薪 P75", round(annual.get("p75", 0) / 12, 1) if annual.get("p75") else None],
+        ["折算年薪 P25（K/年）", annual.get("p25")], ["折算年薪中位（K/年）", annual.get("p50")],
+        ["折算年薪 P75（K/年）", annual.get("p75")],
         ["薪资区间宽度中位", width.get("p50")],
         ["超过 12 薪占比", dq.get("months_over12_pct")],
         ["JD 详情覆盖率", dq.get("detail_coverage_pct")],
         ["公司数", founders.get("companies", 0)],
         ["查到创始人姓名的公司数", founders.get("with_founder", 0)],
     ]
+    commute = analysis.get("commute") or {}
+    rec = analysis.get("recommendation") or {}
+    rec_counts = rec.get("counts") or {}
+    rows += [
+        ["通勤匹配启用", "是" if commute.get("enabled") else "否"],
+        ["通勤工具", commute.get("tool", "")],
+        ["通勤上限（分钟）", commute.get("max_minutes")],
+        ["通勤已计算岗位数", commute.get("calculated", 0)],
+        ["通勤未计算岗位数", commute.get("missing", 0)],
+        ["通勤在范围内岗位数", commute.get("within_max", 0)],
+        ["推荐结论状态", rec.get("status", "")],
+        ["推荐岗位数", rec_counts.get("recommended", 0)],
+        ["可考虑岗位数", rec_counts.get("consider", 0)],
+        ["待核实岗位数", rec_counts.get("pending", 0)],
+        ["不推荐岗位数", rec_counts.get("not_recommended", 0)],
+    ]
+    if rec.get("insufficient_reason"):
+        rows.append(["不推荐原因/调整建议", rec.get("insufficient_reason")])
     for label, key in [("经验", "by_experience"), ("融资阶段", "by_funding"), ("公司规模", "by_size"),
                        ("行业", "by_industry"), ("区域", "by_district")]:
         for item in (s.get(key) or [])[:12]:
@@ -199,6 +243,30 @@ def build_stats(analysis):
             rows.append([f"{label}:{item['label']} 月薪中位", item.get("p50")])
     for item in (s.get("histogram") or []):
         rows.append([f"月薪分箱:{item['label']}", item.get("count")])
+    for item in (s.get("annual_histogram") or []):
+        rows.append([f"折算年薪分箱:{item['label']}", item.get("count")])
+
+    cr = analysis.get("company_research") or {}
+    coverage = cr.get("coverage") or {}
+    concentration = cr.get("concentration") or {}
+    rows += [
+        ["公司调研公司数", cr.get("companies", 0)],
+        ["融资披露率", coverage.get("funding_pct")],
+        ["领域披露率", coverage.get("industry_pct")],
+        ["成立年份覆盖率", coverage.get("founded_pct")],
+        ["Top5 招聘集中度", concentration.get("top5_share_pct")],
+        ["Top10 招聘集中度", concentration.get("top10_share_pct")],
+        ["单岗位公司占比", concentration.get("single_job_company_pct")],
+        ["HHI", concentration.get("hhi")],
+    ]
+    for label, key in [("公司融资", "by_funding"), ("公司领域", "by_industry"),
+                       ("企业规模", "by_size"), ("公司年龄", "by_age")]:
+        for item in (cr.get(key) or []):
+            rows.append([f"{label}:{item['label']} 公司数", item.get("companies")])
+            rows.append([f"{label}:{item['label']} 月薪中位", item.get("p50")])
+    team = founders.get("team_score") or {}
+    for label in ["强", "较好", "一般", "有限", "未评估"]:
+        rows.append([f"老板/团队评分:{label}", team.get(label, 0)])
     return ["指标", "数值"], rows
 
 
@@ -220,7 +288,9 @@ def build_jd_index(normalized):
 
 def build_founders(analysis, normalized, profiles):
     headers = ["序号", "公司名称", "创始人", "联合创始人", "创始人背景", "公司阶段/融资",
-               "法定代表人", "成立日期", "是否脱敏", "在招岗位数", "置信度", "来源", "备注"]
+               "法定代表人", "成立日期", "是否脱敏", "在招岗位数", "置信度",
+               "老板/团队评分", "评分等级", "评分依据", "来源", "备注"]
+    company_index = {e.get("company_key"): e for e in analysis.get("company_index", [])}
     counts = {}
     for job in normalized.get("jobs", []):
         counts[job.get("company_key")] = counts.get(job.get("company_key"), 0) + 1
@@ -231,12 +301,17 @@ def build_founders(analysis, normalized, profiles):
         extras = profile.get("extras") or {}
         if not founder.get("name") and not founder.get("background"):
             continue
+        entry = company_index.get(key) or {}
+        team = entry.get("team_score") or {}
         idx += 1
         rows.append([
             idx, profile.get("display_name", ""), founder.get("name", ""), extras.get("联合创始人", ""),
             founder.get("background", ""), extras.get("公司阶段/融资", ""), extras.get("法定代表人", ""),
             profile.get("founded", ""), extras.get("是否脱敏", ""), counts.get(key, 0),
             CONF_CN.get(profile.get("confidence"), ""),
+            team.get("score") if team.get("score") is not None else "未评估",
+            team.get("label", ""),
+            "；".join(team.get("signals") or []),
             "；".join(s.get("url", "") for s in (profile.get("sources") or []) if s.get("url")),
             profile.get("disambiguation_note", ""),
         ])
@@ -246,13 +321,18 @@ def build_founders(analysis, normalized, profiles):
 def build_match(match):
     if not match:
         return None, []
-    headers = ["排名", "职位", "公司", "城市", "月薪中值K", "匹配分", "命中技能", "缺失技能", "匹配说明", "链接"]
+    headers = ["排名", "职位", "公司", "城市", "月薪中值K", "匹配分", "命中技能", "缺失技能",
+               "通勤距离", "推荐结论", "匹配说明", "链接"]
     rows = []
     for idx, item in enumerate(match.get("ranked", []), start=1):
+        commute = (item.get("commute") or {}).get("label", "")
+        rec = item.get("recommendation", "")
+        reason = item.get("recommendation_reason", "")
         rows.append([
             idx, item.get("title", ""), item.get("company", ""), item.get("city", ""),
             item.get("salary_mid_k", ""), item.get("score", ""),
             "、".join(item.get("matched_skills") or []), "、".join(item.get("missing_skills") or []),
+            commute, f"{rec}（{reason}）" if rec and reason else rec,
             "；".join(item.get("reasons") or []), item.get("url", ""),
         ])
     return headers, rows

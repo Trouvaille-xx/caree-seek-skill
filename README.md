@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="assets/showpage/showcase.zh.svg" alt="CareeSeek — 市场定义区间，简历定义匹配" width="100%">
+  <img src="assets/showpage/showcase.zh.svg" alt="CareeSeek — 市场定义区间，能力决定落点" width="100%">
 </p>
 
 <h1 align="center">CareeSeek</h1>
 
 <p align="center">
-  市场定义区间，简历定义匹配。<br>
-  The market sets the range. Your résumé sets the fit.
+  市场定义区间，能力决定落点。<br>
+  The market sets the range. Your skills set your place.
 </p>
 
 <p align="center">
@@ -35,23 +35,25 @@
 
 ### 这是什么
 
-CareeSeek 是一个可安装到 Claude Code、Codex、DeepSeek 等 agent harness 的求职市场情报 skill。它复用你已登录的浏览器，在 Boss直聘 按求职意向检索岗位，产出三件套：
+CareeSeek 是一个可安装到 Claude Code、Codex、DeepSeek 等 agent harness 的求职市场情报 skill。它复用你已登录的浏览器，在 Boss直聘 按求职意向检索岗位，产出三件套（简历匹配按需）：
 
 | 交付物 | 内容 |
 |---|---|
-| **汇总 Excel** | 岗位 JD 明细 / 公司与创始人 / 统计分析 / JD 全文速览 / 创始人背景明细 / 简历匹配结果 |
-| **岗位 seek 报告** | ECharts 图先行 + 结论紧随：薪资结构、分层驱动、技能与 JD、公司与创始人、可筛选岗位总表 |
-| **简历匹配报告** | 匹配排序、技能差距、简历优化建议、冲 / 稳 / 保投递分档 |
+| **汇总 Excel** | 岗位 JD 明细 / 公司与创始人 / 统计分析 / JD 全文速览 / 创始人背景明细 / 简历匹配结果；主表含「通勤距离」「推荐结论」「老板/团队评分」 |
+| **岗位 seek 报告** | ECharts 图先行 + 结论紧随：薪资结构、市场公司调研、技能与 JD、公司与创始人、可筛选岗位总表；顶部推荐结论 banner |
+| **简历匹配报告** | 匹配排序、技能差距、简历优化建议、冲 / 稳 / 保投递分档；投递策略与匹配明细每条岗位均可「查看岗位 ↗」一键跳转 |
 
 核心原则：**浏览器操作由宿主 agent 完成，脚本只处理数据**——因此能跨 harness 分发。
 
 ### 核心能力
 
-- **意向驱动**：先问城市、年限、目标岗位、行业、薪资；全部可跳过，有默认值。
-- **月薪口径**：P25 / 中位 / P75、折算月薪、报价模板频次、区间宽度；不做 KDE 伪平滑。
+- **意向驱动**：先问城市、年限、目标岗位、行业、薪资、补充要求（通勤等）；全部可跳过，有默认值。
+- **通勤匹配**：用户提出距离要求时，经授权调用地图工具（高德 MCP 优先）计算通勤；无工具不猜，标「未计算」。
+- **月薪口径**：P25 / 中位 / P75、折算年薪、报价模板频次、区间宽度；不做 KDE 伪平滑。
 - **四种阶梯**：同司职级对比、跨司对标、能力技能地图、薪资曲线。
-- **公司背调**：公开信息查创始人 / 融资 / 规模 / 风险，带置信度与同名消歧。
-- **简历匹配**：支持 PDF / Word / Markdown / 文本，输出排序、差距、优化建议、冲稳保。
+- **公司背调**：公开信息查创始人 / 融资 / 规模 / 风险，老板/团队背景评分，带置信度与同名消歧。
+- **如实推荐**：允许薪资/通勤轻微偏差；差距过大时标「不推荐」并给调整建议，不伪造、不硬凑。
+- **简历匹配**：前两件交付后按需询问；支持 PDF / Word / Markdown / 文本，输出排序、差距、优化建议、冲稳保。
 - **跨 harness**：SKILL.md + Python 标准库；浏览器工具自动探测（ego-browser → Claude-in-Chrome → Playwright MCP → tabbit）。
 - **断点续跑**：append-only 数据 + 状态机，中断不丢进度。
 - **ECharts 离线内嵌**：报告单文件、零 CDN、断网可看。
@@ -99,7 +101,7 @@ python scripts/report.py --run runs/demo && python scripts/export.py --run runs/
 |---|---|
 | 有效岗位样本 | 126 |
 | 月薪 P25 / 中位 / P75 | 18.9K / 22.5K / 35.0K |
-| 折算月薪中位 | 26.1K（+16.1%） |
+| 折算年薪中位 | 31.4 万（≈13.9 薪） |
 | 超过 12 薪 | 48.4% |
 | 岗位数 / 公司数 | 127 / 113 |
 | 查到创始人姓名 | 57 / 113 |
@@ -136,10 +138,10 @@ python scripts/report.py --run runs/demo && python scripts/export.py --run runs/
 ### 报告结构（金字塔）
 
 1. **结论速览**：KPI + 5–8 条核心结论
-2. **薪资结构**：直方图、报价模板、分位数、薪数、月薪 vs 折算
-3. **分层驱动**：融资、规模、区域、招聘量 Top 公司、脱敏对比
-4. **技能与 JD**：高频技能、技能溢价、标题细分、JD 字数
-5. **公司与创始人**：置信度环图 + 背调卡片
+2. **薪资结构**：月薪直方图、报价模板、分位数、薪数、折算年薪分布（自适应分箱）
+3. **市场公司调研**：融资阶段、领域、企业规模（人数）、年龄、行业 × 融资阶段、招聘集中度
+4. **技能与 JD**：高频技能、技能溢价、岗位关键词云、能力投资象限、高价值技能组合
+5. **公司与创始人**：置信度 + 老板/团队评分 + 背调卡片
 6. **岗位总表**：可排序 / 筛选
 7. **附录**：数据质量、方法口径、合规声明
 
@@ -149,9 +151,9 @@ python scripts/report.py --run runs/demo && python scripts/export.py --run runs/
 caree-seek-skill/
 ├── SKILL.md                # skill 入口与硬规则
 ├── README.md
-├── references/             # 浏览器契约、playbook、反风控、问卷、背调、合规
+├── references/             # 浏览器契约、playbook、反风控、问卷、通勤、背调、合规
 ├── schema/                 # intake / job / company / analysis / resume / match
-├── scripts/                # preflight / intake / ingest / normalize / analyze / match / report / export / import_xlsx
+├── scripts/                # preflight / intake / ingest / normalize / commute / analyze / match / report / export / import_xlsx
 ├── templates/              # seek 报告、简历匹配报告、默认配置
 ├── assets/                 # echarts.min.js、showpage 海报
 └── runs/<id>/              # 每次运行的工作区（git 已排除）
@@ -167,6 +169,7 @@ caree-seek-skill/
   重启 Claude Code 后，技能列表里会出现 `caree-seek`；也可以直接说「用 caree-seek 分析…」触发。
 - **Codex / 其他 harness**：放到其 skill 约定目录；若不支持 SKILL.md，按 `SKILL.md` 作为操作手册执行
 - 浏览器工具与 Web 搜索按 [references/browser-contract.md](references/browser-contract.md) 适配
+- 如果没有任何可用浏览器工具：skill 会停止自动采集并给出安装提示；也可以用已有调研工作簿 `python scripts/import_xlsx.py --run <run> --xlsx "<path>"` 继续分析与报告
 - 首次运行先做环境自检：`python scripts/preflight.py`
 
 ### 隐私与合规
@@ -183,7 +186,7 @@ caree-seek-skill/
 ## English
 
 <p align="center">
-  <img src="assets/showpage/showcase.en.svg" alt="CareeSeek — The market sets the range. Your résumé sets the fit." width="100%">
+  <img src="assets/showpage/showcase.en.svg" alt="CareeSeek — The market sets the range. Your skills set your place." width="100%">
 </p>
 
 ### What it is
@@ -201,9 +204,9 @@ The core split: **the host agent drives the browser; scripts only process data**
 ### Highlights
 
 - **Intent-first**: city, years, role, industry, and pay are asked up front — all skippable with defaults.
-- **Monthly pay as the primary metric**: P25 / median / P75, annualized monthly pay, quote-template frequency, interval width — no fake smoothing.
+- **Monthly pay as the primary metric**: P25 / median / P75, annualized pay, quote-template frequency, interval width — no fake smoothing.
 - **Four ladder views**: same-company levels, cross-company mapping, capability map, salary curve.
-- **Company checks**: public-source founder / funding / size / risk signals with confidence and name disambiguation.
+- **Company checks**: public-source founder / funding / size / risk signals with confidence, name disambiguation and a founder/team background score.
 - **Resume matching**: PDF / Word / Markdown / text → ranking, gaps, rewrite suggestions, reach/target/safety tiers.
 - **Harness-agnostic**: SKILL.md + Python standard library; browser tools auto-probed (ego-browser → Claude-in-Chrome → Playwright MCP → tabbit).
 - **Resumable**: append-only data + state machine.
@@ -282,10 +285,10 @@ python scripts/report.py --run runs/demo && python scripts/export.py --run runs/
 ### Report structure (pyramid)
 
 1. **Executive summary**: KPIs + 5–8 conclusions
-2. **Pay structure**: histogram, quote templates, quantiles, months, monthly vs annualized
-3. **Segment drivers**: funding, size, district, top employers, desensitized comparison
-4. **Skills & JDs**: frequency, salary lift, title segments, JD length
-5. **Companies & founders**: confidence donut + check cards
+2. **Pay structure**: monthly histogram, quote templates, quantiles, months, annualized pay distribution (adaptive bins)
+3. **Market company research**: funding, field, company size (headcount), age, industry × funding, hiring concentration
+4. **Skills & JDs**: frequency, salary lift, keyword cloud, capability investment quadrant, high-value skill combos
+5. **Companies & founders**: confidence + founder/team score + check cards
 6. **Job table**: sortable / filterable
 7. **Appendix**: data quality, methodology, compliance
 

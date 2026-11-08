@@ -59,6 +59,23 @@ def validate(cfg: dict):
     cfg.setdefault("role_keywords", [])
     cfg.setdefault("industry", "")
     cfg.setdefault("company_size_pref", [])
+    cfg.setdefault("supplementary_requirements", "")
+    commute = cfg.get("commute") if isinstance(cfg.get("commute"), dict) else {}
+    commute["enabled"] = bool(commute.get("enabled"))
+    commute["home_address"] = str(commute.get("home_address") or "").strip()
+    allowed_modes = {"transit", "driving", "walking", "cycling"}
+    commute["modes"] = [m for m in (commute.get("modes") or []) if m in allowed_modes]
+    try:
+        max_minutes = int(commute["max_minutes"]) if commute.get("max_minutes") else None
+    except (TypeError, ValueError):
+        max_minutes = None
+    if max_minutes is not None:
+        max_minutes = max(1, min(180, max_minutes))
+    commute["max_minutes"] = max_minutes
+    if commute["enabled"] and (not commute["home_address"] or not commute["modes"]):
+        warnings.append("通勤匹配已开启，但家庭地址或通勤方式缺失；地图计算前需要补齐")
+    cfg["commute"] = commute
+
     cfg.setdefault("questionnaire_answered", [])
     cfg.setdefault("pacing_profile", "standard")
 
@@ -126,6 +143,8 @@ def main():
         "role_keywords": cfg["role_keywords"],
         "ladder_modes": cfg["ladder_modes"],
         "bg_scope": cfg["bg_scope"],
+        "commute": cfg.get("commute"),
+        "supplementary_requirements": cfg.get("supplementary_requirements", ""),
         "export_targets": cfg["export_targets"],
         "warnings": warnings,
         "next": "运行 preflight.py 并探测浏览器，然后按 references/playbook-boss.md 开始检索",

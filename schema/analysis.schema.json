@@ -19,11 +19,31 @@
           }
         },
         "histogram": { "type": "array" },
+        "annual_histogram": { "type": "array" },
         "by_city": { "type": "array" },
         "by_city_tier": { "type": "array" }
       }
     },
     "keyword_freq": { "type": "array" },
+    "skills": {
+      "type": "object",
+      "properties": {
+        "top": { "type": "array" },
+        "lift": { "type": "array" },
+        "entry": { "type": "array" },
+        "combos": { "type": "array" }
+      }
+    },
+    "keyword_cloud": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string" },
+          "count": { "type": "integer" }
+        }
+      }
+    },
     "ladders": {
       "type": "object",
       "properties": {
@@ -45,8 +65,69 @@
     },
     "ranked_jobs": { "type": "array" },
     "company_index": { "type": "array" },
+    "company_research": {
+      "type": "object",
+      "properties": {
+        "companies": { "type": "integer" },
+        "total_jobs": { "type": "integer" },
+        "by_funding": { "type": "array" },
+        "by_industry": { "type": "array" },
+        "by_size": { "type": "array" },
+        "by_age": { "type": "array" },
+        "industry_funding": { "type": "object" },
+        "concentration": { "type": "object" },
+        "top_companies": { "type": "array" },
+        "coverage": { "type": "object" }
+      }
+    },
     "anomalies": { "type": "array" },
     "data_quality": { "type": "object" },
+    "commute": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "tool": { "type": "string" },
+        "max_minutes": { "type": ["number", "null"] },
+        "calculated": { "type": "integer" },
+        "missing": { "type": "integer" },
+        "within_max": { "type": "integer" },
+        "over_max": { "type": "integer" },
+        "approved": { "type": "boolean" },
+        "modes": { "type": "array" }
+      }
+    },
+    "commute_index": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "mode": { "type": "string" },
+          "minutes": { "type": "number" },
+          "distance_km": { "type": ["number", "null"] },
+          "label": { "type": "string" },
+          "within_max": { "type": "boolean" },
+          "over_max": { "type": "boolean" }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "properties": {
+        "status": { "enum": ["ok", "partial", "insufficient"] },
+        "labels": { "type": "object" },
+        "counts": { "type": "object" },
+        "recommended_ids": { "type": "array" },
+        "consider_ids": { "type": "array" },
+        "pending_ids": { "type": "array" },
+        "not_recommended_ids": { "type": "array" },
+        "salary_expected_min": { "type": ["number", "null"] },
+        "salary_found_top_p50": { "type": ["number", "null"] },
+        "commute_median": { "type": ["number", "null"] },
+        "commute_max": { "type": ["number", "null"] },
+        "insufficient_reason": { "type": "string" },
+        "alternatives": { "type": "array", "items": { "type": "string" } }
+      }
+    },
     "low_confidence_flags": { "type": "array", "items": { "type": "string" } }
   },
   "required": ["run_id", "n", "salary", "ladders", "scores"]

@@ -115,18 +115,25 @@ python scripts/ingest.py --run <run> --kind jobs --file batch.json --extraction-
 
 > 详情页是可选的增强：列表卡片已含岗位/公司/薪资/城市/经验/学历，详情补充 JD 文本（技能分析依赖它）。
 
-## 5. 归一化、背调、分析、报告
+## 5. 归一化、背调、通勤、分析、报告
 
 ```bash
 python scripts/normalize.py --run <run>
-python scripts/analyze.py   --run <run>
-python scripts/report.py    --run <run>
-python scripts/export.py    --run <run> --format all
+# 启用通勤时：先 --list，等地图 MCP 算完，再 --file 合并
+python scripts/commute.py  --run <run> --list
+python scripts/commute.py  --run <run> --file commute.json --tool amap-mcp --approved true
+python scripts/analyze.py  --run <run>
+python scripts/report.py   --run <run>
+python scripts/export.py   --run <run> --format all
 ```
 
 - 背调（可选）：按 `references/background-check.md` 采集公司档案，用 `ingest.py --kind profile` 入库。
-- **简历匹配（可选）**：调研完成后询问用户是否已有简历；有则按 `references/resume-matching.md` 提取并运行 `match.py`，`report.py` 会自动生成 `resume-match.html`。
-- 报告生成后，把 `report.html` / `resume-match.html` / `exports/岗位调研汇总.xlsx` 三个路径告诉用户。
+- 通勤（可选）：仅在用户主动提出距离要求且授权地图工具后执行，口径见 `references/commute-matching.md`；无工具不猜时长。
+- **先交付岗位 Excel + report.html 两件。**
+- **简历匹配（可选，后置）**：前两件交付后，如果用户此前没有提供简历，再问一次：
+  > 我可以基于您的简历与刚刚调研的结果为您提供一个投递建议，是否需要？如果需求，请提供简历信息。
+  同意后按 `references/resume-matching.md` 提取并运行 `match.py`，再运行一次 `report.py` 生成 `resume-match.html`。
+- 报告生成后，把 `report.html` / `resume-match.html` / `exports/岗位调研汇总.xlsx` 的路径告诉用户（匹配报告仅在用户提供简历时存在）。
 - 已有调研工作簿可直接导入：`python scripts/import_xlsx.py --run <run> --xlsx "<path>"`。
 
 ## 6. 验证码暂停协议（硬规则）
